@@ -109,9 +109,6 @@ class Inscripciones:
     def run(self):
         self.mainwindow.mainloop()
 
-    ''' A partir de este punto se deben incluir las funciones
-     para el manejo de la base de datos '''
-    
           
 if __name__ == "__main__":
     app = Inscripciones()
