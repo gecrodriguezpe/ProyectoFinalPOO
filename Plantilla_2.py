@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 import tkinter as tk
 import tkinter.ttk as ttk
+from tkinter import messagebox as mssg
 import sqlite3
 from pathlib import Path
+from datetime import datetime
 
 DB = str(Path.cwd()) + r"\db\Inscripciones.db"
 
