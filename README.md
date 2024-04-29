@@ -23,3 +23,31 @@
 `.bind()` es un método en `Tkinter` que te permite asociar una función o método a un evento específico en un widget. Cuando se produce el evento especificado, la función asociada se ejecuta.
 
 Por ejemplo, puedes usar `.bind()` para ejecutar una función cuando un botón es presionado, cuando se ingresa texto en un Entry, cuando se selecciona un elemento en un Combobox, entre otros eventos.
+
+## Cosas adicionales que se le pueden agregar al proyecto 
+
+1. Documentar de manera correcta las funciones del proyecto (docstring).
+  - Que cada función contenga su DOCSTRING describiendo su funcionalidad, los parámetros y lo que retorna
+  ```
+  def sumar (num1, num2): 
+    '''
+    
+
+    Parameters
+    ----------
+    num1 : TYPE
+        DESCRIPTION.
+    num2 : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    suma : TYPE
+        DESCRIPTION.
+
+    '''
+    
+    suma = num1 + num2
+    
+    return suma
+  ```
