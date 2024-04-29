@@ -3,12 +3,15 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 import sqlite3
+from pathlib import Path
+
+DB = str(Path.cwd()) + r"\db\Inscripciones.db"
 
 
 class Inscripciones_2:
     def __init__(self, master=None):
          # Ventana principal
-        self.db_name = 'Inscripciones.db'    
+        self.db_name = DB
         self.win = tk.Tk(master)
         self.win.configure(background="#f7f9fd", height=600, width=800)
         self.win.geometry("800x600")
@@ -43,6 +46,8 @@ class Inscripciones_2:
         #Combobox Alumno
         self.cmbx_Id_Alumno = ttk.Combobox(self.frm_1, name="cmbx_id_alumno")
         self.cmbx_Id_Alumno.place(anchor="nw", width=112, x=100, y=80)
+        self.obtener_Alumnos()
+        self.cmbx_Id_Alumno.bind("<<ComboboxSelected>>", self.escoger_ALumno)
         #Label Alumno
         self.lblNombres = ttk.Label(self.frm_1, name="lblnombres")
         self.lblNombres.configure(text='Nombre(s):')
@@ -139,6 +144,44 @@ class Inscripciones_2:
     ''' A partir de este punto se deben incluir las funciones
      para el manejo de la base de datos '''
 
+    def run_Query(self,query,parameters=(),op_Busqueda=0):
+        try:
+            with sqlite3.connect(self.db_name) as conn:
+                self.cur = conn.cursor()
+                self.cur.execute(query,parameters)
+                if op_Busqueda == 1:
+                    return self.cur.fetchone()
+                elif op_Busqueda == 2:
+                    return self.cur.fetchall()
+                else:
+                    return None  # Si op_Busqueda no es válido
+        except sqlite3.Error as e:
+            print("Error executing query:", e)
+            return None
+    def obtener_Alumnos(self):
+            query = "SELECT DISTINCT Id_Alumno FROM Alumnos ORDER BY Id_Alumno"
+            results = self.run_Query(query, (), 2)
+            if results:
+                ids_alumnos = [result[0] for result in results]
+                self.cmbx_Id_Alumno['values'] = ids_alumnos
+    
+    def escoger_ALumno(self,event):
+        id_Alumno = self.cmbx_Id_Alumno.get()
+        query = "SELECT Nombres, Apellidos FROM Alumnos WHERE Id_Alumno = ?"
+        result = self.run_Query(query, (id_Alumno,), 1)
+        if result:
+            nombre = result[0]
+            apellidos = result[1]
+            self.nombres.config(state="normal")
+            self.apellidos.config(state="normal")
+            self.nombres.delete(0, "end")
+            self.nombres.insert(0, nombre)
+            self.apellidos.delete(0, "end")
+            self.apellidos.insert(0, apellidos)
+            self.apellidos.config(state="disabled")
+            self.nombres.config(state="disabled")
+
+        
 if __name__ == "__main__":
     app = Inscripciones_2()
     app.run()
