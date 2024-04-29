@@ -1,7 +1,4 @@
-# ProyectoFinalPOO
-Proyecto final POO - G33 
-
-# Información del proyecto: 
+# Proyecto final POO - G33 
 
 ## Integrantes del proyecto 
 - Andrew Nicolay Prieto Mendoza: aprietome@unal.edu.co
