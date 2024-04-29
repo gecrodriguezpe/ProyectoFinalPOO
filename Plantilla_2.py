@@ -27,10 +27,14 @@ class Inscripciones_2:
          #Label No. Inscripción
         self.lblNoInscripcion.place(anchor="nw", x=680, y=20)
         #Entry No. Inscripción
-        self.num_Inscripcion = ttk.Entry(self.frm_1, name="num_inscripcion")
-        self.num_Inscripcion.configure(justify="right")
-        self.num_Inscripcion.place(anchor="nw", width=100, x=682, y=42)
+        # self.num_Inscripcion = ttk.Entry(self.frm_1, name="num_inscripcion")
+        # self.num_Inscripcion.configure(justify="right")
+        # self.num_Inscripcion.place(anchor="nw", width=100, x=682, y=42)
         
+        #Combobox No_Inscripción
+        self.num_Inscripción = ttk.Combobox(self.frm_1, name="num_Inscripción")
+        self.num_Inscripción.place(anchor="nw", width=100, x=682, y=42)
+        self.obtener_Inscripciones()
         #Label Fecha
         self.lblFecha = ttk.Label(self.frm_1, name="lblfecha")
         self.lblFecha.configure(background="#f7f9fd", text='Fecha:')
@@ -47,7 +51,8 @@ class Inscripciones_2:
         self.cmbx_Id_Alumno = ttk.Combobox(self.frm_1, name="cmbx_id_alumno")
         self.cmbx_Id_Alumno.place(anchor="nw", width=112, x=100, y=80)
         self.obtener_Alumnos()
-        self.cmbx_Id_Alumno.bind("<<ComboboxSelected>>", self.escoger_ALumno)
+        self.cmbx_Id_Alumno.bind("<<ComboboxSelected>>", self.escoger_Alumno)    # Configurar ComboBox para permitir selección y vincular evento de selección a función
+
         #Label Alumno
         self.lblNombres = ttk.Label(self.frm_1, name="lblnombres")
         self.lblNombres.configure(text='Nombre(s):')
@@ -165,7 +170,7 @@ class Inscripciones_2:
                 ids_alumnos = [result[0] for result in results]
                 self.cmbx_Id_Alumno['values'] = ids_alumnos
     
-    def escoger_ALumno(self,event):
+    def escoger_Alumno(self,event):
         id_Alumno = self.cmbx_Id_Alumno.get()
         query = "SELECT Nombres, Apellidos FROM Alumnos WHERE Id_Alumno = ?"
         result = self.run_Query(query, (id_Alumno,), 1)
@@ -181,6 +186,14 @@ class Inscripciones_2:
             self.apellidos.config(state="disabled")
             self.nombres.config(state="disabled")
 
+    def obtener_Inscripciones(self):
+        query = "SELECT DISTINCT Id_Inscripcion FROM Inscripciones ORDER BY Id_Inscripcion"
+        results = self.run_Query(query, (), 2)
+        if results:
+            ids_inscripciones = [result[0] for result in results]
+            self.num_Inscripción['values'] = ids_inscripciones
+        else:
+            self.num_Inscripción['values'] = [1]
         
 if __name__ == "__main__":
     app = Inscripciones_2()
