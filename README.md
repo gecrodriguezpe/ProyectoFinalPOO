@@ -27,7 +27,8 @@ Por ejemplo, puedes usar `.bind()` para ejecutar una función cuando un botón e
 ## Cosas adicionales que se le pueden agregar al proyecto 
 
 1. Documentar de manera correcta las funciones del proyecto (docstring).
-  - Que cada función contenga su DOCSTRING describiendo su funcionalidad, los parámetros y lo que retorna
+  - Que cada función contenga su DOCSTRING describiendo su funcionalidad, los parámetros y lo que retorna.
+  - Ejemplo de función con DOCSTRING: 
   ```
   def sumar (num1, num2): 
     '''
