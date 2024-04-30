@@ -226,18 +226,21 @@ class Inscripciones_2:
     def guardar_Inscripcion(self, event):
         id_Alumno = self.cmbx_Id_Alumno.get()
         id_Curso = self.cmbx_Id_Curso.get()
-        num_Inscripcion = self.num_Inscripción.get()
         fecha = self.fecha.get()
         
-        if self.verificar_Inscripcion(id_Alumno, id_Curso):
-            mssg.showerror("Error", "El alumno ya se encuentra inscrito en el curso")
+        if not id_Alumno or not id_Curso or not fecha:
+            mssg.showerror("Error", "Por favor, complete todos los campos")
         else:
-            query = "INSERT INTO Inscritos (Id_Alumno, Codigo_Curso, No_Inscripcion, Fecha_Inscripcion) VALUES (?, ?, ?, ?)"
-            parameters = (id_Alumno, id_Curso, num_Inscripcion, fecha)
-            self.run_Query(query, parameters)
-            mssg.showinfo("Exito", "Inscripcion realizada con exito")
+            # Verificar si el alumno ya está inscrito en el curso
+            if self.verificar_Inscripcion(id_Alumno, id_Curso):
+                mssg.showerror("Error", "El alumno ya se encuentra inscrito en el curso")
+            else:
+                # Insertar nueva inscripción en la tabla Inscritos
+                query = "INSERT INTO Inscritos (Id_Alumno, Codigo_Curso, Fecha_Inscripcion) VALUES (?, ?, ?)"
+                parameters = (id_Alumno, id_Curso, fecha)
+                self.run_Query(query, parameters)
+                mssg.showinfo("Exito", "Inscripcion realizada con exito")
 
-    
     def verificar_Inscripcion(self, id_alumno, codigo_curso):
         query = "SELECT COUNT(*) FROM Inscritos WHERE Id_Alumno = ? AND Codigo_Curso = ?"
         result = self.run_Query(query, (id_alumno, codigo_curso), 1)
