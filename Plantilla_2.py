@@ -74,9 +74,11 @@ class Inscripciones_2:
         self.lblIdCurso.configure(background="#f7f9fd",state="normal",text='Id Curso:')
         self.lblIdCurso.place(anchor="nw", x=20, y=185)
         #Entry Curso
-        self.id_Curso = ttk.Entry(self.frm_1, name="id_curso")
-        self.id_Curso.configure(justify="left", width=166)
-        self.id_Curso.place(anchor="nw", width=166, x=100, y=185)
+        self.cmbx_Id_Curso = ttk.Combobox(self.frm_1, name="id_curso")
+        self.cmbx_Id_Curso.place(anchor="nw", width=166, x=100, y=185)
+        self.obtener_Cursos()
+        self.cmbx_Id_Curso.bind("<<ComboboxSelected>>", self.escoger_Curso)    # Configurar ComboBox para permitir selección y vincular evento de selección a función
+
         #Label Descripción del Curso
         self.lblDscCurso = ttk.Label(self.frm_1, name="lbldsccurso")
         self.lblDscCurso.configure(background="#f7f9fd",state="normal",text='Curso:')
@@ -189,13 +191,38 @@ class Inscripciones_2:
             self.nombres.config(state="disabled")
 
     def obtener_Inscripciones(self):
-        query = "SELECT DISTINCT Id_Inscripcion FROM Inscripciones ORDER BY Id_Inscripcion"
+        query = "SELECT DISTINCT `No.Inscripcion` FROM Inscritos ORDER BY `No.Inscripcion`"
         results = self.run_Query(query, (), 2)
         if results:
             ids_inscripciones = [result[0] for result in results]
             self.num_Inscripción['values'] = ids_inscripciones
         else:
             self.num_Inscripción['values'] = [1]
+    
+    def obtener_Cursos(self):
+        query = "SELECT DISTINCT Codigo_Curso FROM Cursos ORDER BY Codigo_Curso"
+        results = self.run_Query(query, (), 2)
+        if results:
+            codigos_cursos = [result[0] for result in results]
+            self.cmbx_Id_Curso['values'] = codigos_cursos
+            
+    def escoger_Curso(self, event):
+        id_Curso = self.cmbx_Id_Curso.get()  # Corregido de self.num_Curso a self.cmbx_Id_Curso
+        query = "SELECT Descrip_Curso, Num_Horas FROM Cursos WHERE Codigo_Curso = ?"
+        result = self.run_Query(query, (id_Curso,), 1)
+        if result:
+            descrip = result[0]
+            num_Horas = result[1]
+            self.descripc_Curso.config(state="normal")
+            self.horario.config(state="normal")
+            self.descripc_Curso.delete(0, "end")
+            self.descripc_Curso.insert(0, descrip)
+            self.horario.delete(0, "end")
+            self.horario.insert(0, num_Horas)
+            self.horario.config(state="disabled")
+            self.descripc_Curso.config(state="disabled")
+
+            
         
 if __name__ == "__main__":
     app = Inscripciones_2()
