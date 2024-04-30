@@ -101,6 +101,7 @@ class Inscripciones_2:
         self.btnGuardar = ttk.Button(self.frm_1, name="btnguardar")
         self.btnGuardar.configure(text='Guardar')
         self.btnGuardar.place(anchor="nw", x=200, y=260)
+        self.btnGuardar.bind("<Button-1>", self.guardar_Inscripcion)
         
         #Botón Editar
         self.btnEditar = ttk.Button(self.frm_1, name="btneditar")
@@ -191,7 +192,7 @@ class Inscripciones_2:
             self.nombres.config(state="disabled")
 
     def obtener_Inscripciones(self):
-        query = "SELECT DISTINCT `No.Inscripcion` FROM Inscritos ORDER BY `No.Inscripcion`"
+        query = "SELECT DISTINCT No_Inscripcion FROM Inscritos ORDER BY No_Inscripcion"
         results = self.run_Query(query, (), 2)
         if results:
             ids_inscripciones = [result[0] for result in results]
@@ -222,7 +223,29 @@ class Inscripciones_2:
             self.horario.config(state="disabled")
             self.descripc_Curso.config(state="disabled")
 
-            
+    def guardar_Inscripcion(self, event):
+        id_Alumno = self.cmbx_Id_Alumno.get()
+        id_Curso = self.cmbx_Id_Curso.get()
+        num_Inscripcion = self.num_Inscripción.get()
+        fecha = self.fecha.get()
+        
+        if self.verificar_Inscripcion(id_Alumno, id_Curso):
+            mssg.showerror("Error", "El alumno ya se encuentra inscrito en el curso")
+        else:
+            query = "INSERT INTO Inscritos (Id_Alumno, Codigo_Curso, No_Inscripcion, Fecha_Inscripcion) VALUES (?, ?, ?, ?)"
+            parameters = (id_Alumno, id_Curso, num_Inscripcion, fecha)
+            self.run_Query(query, parameters)
+            mssg.showinfo("Exito", "Inscripcion realizada con exito")
+
+    
+    def verificar_Inscripcion(self, id_alumno, codigo_curso):
+        query = "SELECT COUNT(*) FROM Inscritos WHERE Id_Alumno = ? AND Codigo_Curso = ?"
+        result = self.run_Query(query, (id_alumno, codigo_curso), 1)
+        if result[0] > 0:
+            return True  # El alumno ya está inscrito en el curso
+        else:
+            return False 
+           
         
 if __name__ == "__main__":
     app = Inscripciones_2()
