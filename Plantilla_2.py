@@ -125,14 +125,19 @@ class Inscripciones_2:
         self.tView = ttk.Treeview(self.frm_1, name="tview")
         self.tView.configure(selectmode="extended")
         #Columnas del Treeview
-        self.tView_cols = ['tV_descripción']
-        self.tView_dcols = ['tV_descripción']
+        self.tView_cols = ['tV_curso','tV_descripción','tV_horario']
+        self.tView_dcols = ['tV_curso','tV_descripción', 'tV_horario']
         self.tView.configure(columns=self.tView_cols,displaycolumns=self.tView_dcols)
-        self.tView.column("#0",anchor="w",stretch=True,width=10,minwidth=10)
+        self.tView.column("#0",anchor="w",stretch=True,width=55,minwidth=10)
+        self.tView.column("tV_horario",anchor="w",stretch=True,width=55,minwidth=25)
         self.tView.column("tV_descripción",anchor="w",stretch=True,width=200,minwidth=50)
+        self.tView.column("tV_curso",anchor="w",stretch=True,width=100,minwidth=50)
+
         #Cabeceras
-        self.tView.heading("#0", anchor="w", text='Curso')
+        self.tView.heading("#0", anchor="w", text='Id Alumno')
+        self.tView.heading("tV_horario", anchor="w", text='Horario')
         self.tView.heading("tV_descripción", anchor="w", text='Descripción')
+        self.tView.heading("tV_curso", anchor="w", text='Curso')
         self.tView.place(anchor="nw", height=300, width=790, x=4, y=300)
         #Scrollbars
         self.scroll_H = ttk.Scrollbar(self.frm_1, name="scroll_h")
@@ -192,10 +197,12 @@ class Inscripciones_2:
             self.nombres.config(state="disabled")
 
     def obtener_Inscripciones(self):
+        self.num_Inscripción.delete(0, "end")
         query = "SELECT DISTINCT No_Inscripcion FROM Inscritos ORDER BY No_Inscripcion"
         results = self.run_Query(query, (), 2)
         if results:
             ids_inscripciones = [result[0] for result in results]
+            self.num_Inscripción.insert(0,max(ids_inscripciones)+1)
             self.num_Inscripción['values'] = ids_inscripciones
         else:
             self.num_Inscripción['values'] = [1]
@@ -240,6 +247,8 @@ class Inscripciones_2:
                 parameters = (id_Alumno, id_Curso, fecha)
                 self.run_Query(query, parameters)
                 mssg.showinfo("Exito", "Inscripcion realizada con exito")
+                self.obtener_Inscripciones()
+
 
     def verificar_Inscripcion(self, id_alumno, codigo_curso):
         query = "SELECT COUNT(*) FROM Inscritos WHERE Id_Alumno = ? AND Codigo_Curso = ?"
@@ -248,6 +257,11 @@ class Inscripciones_2:
             return True  # El alumno ya está inscrito en el curso
         else:
             return False 
+    
+    def obtener_datos(self, event):
+        pass
+    
+
            
         
 if __name__ == "__main__":
