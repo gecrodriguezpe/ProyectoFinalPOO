@@ -7,27 +7,43 @@ import sqlite3
 from pathlib import Path
 from datetime import datetime
 
-DB = str(Path.cwd()) + r"\db\Inscripciones.db"
+# Directorio del archivo Inscripciones.py
+PATH = str((Path(__file__).resolve()).parent)
 
+# Directorio donde se encuentra el icono
+ICON = r"/img/firefox.ico"
 
-class Inscripciones_2:
+# Directorio donde se encuentra la base de datos 
+DB = r"/db/Inscripciones.db"
+
+# Clase con la interfaz gráfica del programa
+class Inscripciones:
+
+    # Constructor de la clase Inscripciones
     def __init__(self, master=None):
+         
          # Ventana principal
-        self.db_name = DB
-        self.win = tk.Tk(master)
-        self.win.configure(background="#f7f9fd", height=600, width=800)
-        self.win.geometry("800x600")
-        self.win.resizable(False, False)
-        self.win.title("Inscripciones de Materias y Cursos")
+        ancho_Win = 800;  alto_Win = 600 # Dimensiones de la ventana principal
+        self.db_name = PATH + DB # Base de datos
+        self.win = tk.Tk(master) # Ventana principal
+        self.win.configure(background="#f7f9fd", height=alto_Win, width=ancho_Win) # Configuraciones de la ventana
+        self.win.geometry(f"{ancho_Win}x{alto_Win}") # Geometría de la ventana
+        self.win.resizable(False, False) # No permitir cambiar las dimensiones de la ventana
+        self.centrar_Pantalla(self.win, ancho_Win, alto_Win) # Centrado de pantalla
+        self.win.iconbitmap(PATH + ICON) # Icono de la ventana 
+        self.win.title("Inscripciones de Materias y Cursos") # Título de la ventana
+
         # Crea los frames
         self.frm_1 = tk.Frame(self.win, name="frm_1")
         self.frm_1.configure(background="#f7f9fd", height=600, width=800)
+        
+        #Label No. Inscripción
         self.lblNoInscripcion = ttk.Label(self.frm_1, name="lblnoinscripcion")
         self.lblNoInscripcion.configure(background="#f7f9fd",font="{Arial} 11 {bold}",
                                         justify="left",state="normal",
                                         takefocus=False,text='No.Inscripción')
-         #Label No. Inscripción
         self.lblNoInscripcion.place(anchor="nw", x=680, y=20)
+        
         #Entry No. Inscripción
         # self.num_Inscripcion = ttk.Entry(self.frm_1, name="num_inscripcion")
         # self.num_Inscripcion.configure(justify="right")
@@ -37,18 +53,24 @@ class Inscripciones_2:
         self.num_Inscripción = ttk.Combobox(self.frm_1, name="num_Inscripción")
         self.num_Inscripción.place(anchor="nw", width=100, x=682, y=42)
         self.obtener_Inscripciones()
+
         #Label Fecha
         self.lblFecha = ttk.Label(self.frm_1, name="lblfecha")
         self.lblFecha.configure(background="#f7f9fd", text='Fecha:')
         self.lblFecha.place(anchor="nw", x=630, y=80)
+
         #Entry Fecha
         self.fecha = ttk.Entry(self.frm_1, name="fecha")
         self.fecha.configure(justify="center")
         self.fecha.place(anchor="nw", width=90, x=680, y=80)
+        self.fecha.bind("<KeyRelease>", self.valida_Fecha)
+        self.fecha.bind("<BackSpace>", lambda _: self.fecha.delete(len(self.fecha.get())), "end")
+
         #Label Alumno
         self.lblIdAlumno = ttk.Label(self.frm_1, name="lblidalumno")
         self.lblIdAlumno.configure(background="#f7f9fd", text='Id Alumno:')
         self.lblIdAlumno.place(anchor="nw", x=20, y=80)
+
         #Combobox Alumno
         self.cmbx_Id_Alumno = ttk.Combobox(self.frm_1, name="cmbx_id_alumno")
         self.cmbx_Id_Alumno.place(anchor="nw", width=112, x=100, y=80)
@@ -59,20 +81,25 @@ class Inscripciones_2:
         self.lblNombres = ttk.Label(self.frm_1, name="lblnombres")
         self.lblNombres.configure(text='Nombre(s):')
         self.lblNombres.place(anchor="nw", x=20, y=130)
+
         #Entry Alumno
         self.nombres = ttk.Entry(self.frm_1, name="nombres")
         self.nombres.place(anchor="nw", width=200, x=100, y=130)
+
         #Label Apellidos
         self.lblApellidos = ttk.Label(self.frm_1, name="lblapellidos")
         self.lblApellidos.configure(text='Apellido(s):')
         self.lblApellidos.place(anchor="nw", x=400, y=130)
+
         #Entry Apellidos
         self.apellidos = ttk.Entry(self.frm_1, name="apellidos")
         self.apellidos.place(anchor="nw", width=200, x=485, y=130)
+
         #Label Curso
         self.lblIdCurso = ttk.Label(self.frm_1, name="lblidcurso")
         self.lblIdCurso.configure(background="#f7f9fd",state="normal",text='Id Curso:')
         self.lblIdCurso.place(anchor="nw", x=20, y=185)
+
         #Entry Curso
         self.cmbx_Id_Curso = ttk.Combobox(self.frm_1, name="id_curso")
         self.cmbx_Id_Curso.place(anchor="nw", width=166, x=100, y=185)
@@ -83,47 +110,66 @@ class Inscripciones_2:
         self.lblDscCurso = ttk.Label(self.frm_1, name="lbldsccurso")
         self.lblDscCurso.configure(background="#f7f9fd",state="normal",text='Curso:')
         self.lblDscCurso.place(anchor="nw", x=275, y=185)
+
         #Entry de Descripción del Curso 
         self.descripc_Curso = ttk.Entry(self.frm_1, name="descripc_curso")
         self.descripc_Curso.configure(justify="left", width=166)
         self.descripc_Curso.place(anchor="nw", width=300, x=325, y=185)
+
         #Label Horario
         self.lblHorario = ttk.Label(self.frm_1, name="label3")
         self.lblHorario.configure(background="#f7f9fd",state="normal",text='Hora:')
         self.lblHorario.place(anchor="nw", x=635, y=185)
+
         #Entry del Horario
         self.horario = ttk.Entry(self.frm_1, name="entry3")
         self.horario.configure(justify="left", width=166)
         self.horario.place(anchor="nw", width=100, x=680, y=185)
 
         ''' Botones  de la Aplicación'''
+
+        #Boton Buscar
+        self.btnGuardar = ttk.Button(self.frm_1, name="btnbuscar")
+        self.btnGuardar.configure(text='Buscar')
+        self.btnGuardar.place(anchor="nw", x=120, y=260)
+
+        #Boton Agregar
+        self.btnGuardar = ttk.Button(self.frm_1, name="btnagregar")
+        self.btnGuardar.configure(text='Agregar')
+        self.btnGuardar.place(anchor="nw", x=220, y=260)
+
         #Botón Guardar
         self.btnGuardar = ttk.Button(self.frm_1, name="btnguardar")
         self.btnGuardar.configure(text='Guardar')
-        self.btnGuardar.place(anchor="nw", x=200, y=260)
+        self.btnGuardar.place(anchor="nw", x=320, y=260)
         self.btnGuardar.bind("<Button-1>", self.guardar_Inscripcion)
         
         #Botón Editar
         self.btnEditar = ttk.Button(self.frm_1, name="btneditar")
         self.btnEditar.configure(text='Editar')
-        self.btnEditar.place(anchor="nw", x=300, y=260)
+        self.btnEditar.place(anchor="nw", x=420, y=260)
+
         #Botón Eliminar
         self.btnEliminar = ttk.Button(self.frm_1, name="btneliminar")
         self.btnEliminar.configure(text='Eliminar')
-        self.btnEliminar.place(anchor="nw", x=400, y=260)
+        self.btnEliminar.place(anchor="nw", x=520, y=260)
+
         #Botón Cancelar
         self.btnCancelar = ttk.Button(self.frm_1, name="btncancelar")
         self.btnCancelar.configure(text='Cancelar')
-        self.btnCancelar.place(anchor="nw", x=500, y=260)
+        self.btnCancelar.place(anchor="nw", x=620, y=260)
+
         #Separador
         separator1 = ttk.Separator(self.frm_1)
         separator1.configure(orient="horizontal")
         separator1.place(anchor="nw", width=796, x=2, y=245)
 
         ''' Treeview de la Aplicación'''
+
         #Treeview
         self.tView = ttk.Treeview(self.frm_1, name="tview")
         self.tView.configure(selectmode="extended")
+
         #Columnas del Treeview
         self.tView_cols = ['tV_curso','tV_descripción','tV_horario']
         self.tView_dcols = ['tV_curso','tV_descripción', 'tV_horario']
@@ -139,6 +185,7 @@ class Inscripciones_2:
         self.tView.heading("tV_descripción", anchor="w", text='Descripción')
         self.tView.heading("tV_curso", anchor="w", text='Curso')
         self.tView.place(anchor="nw", height=300, width=790, x=4, y=300)
+
         #Scrollbars
         self.scroll_H = ttk.Scrollbar(self.frm_1, name="scroll_h")
         self.scroll_H.configure(orient="horizontal")
@@ -155,9 +202,48 @@ class Inscripciones_2:
     def run(self):
         self.mainwindow.mainloop()
 
+    ''' Funcionalidades del programa'''
 
-    ''' A partir de este punto se deben incluir las funciones
-     para el manejo de la base de datos '''
+    # Funciones de centrado 
+
+    ## Centrado de la pantalla
+    def centrar_Pantalla(self, pantalla, ancho, alto):
+        """ Centra las ventanas del programa """
+
+        x = (pantalla.winfo_screenwidth() // 2) - (ancho // 2)
+        y = (pantalla.winfo_screenheight() // 2) - (alto // 2)
+
+        pantalla.geometry(f"{ancho}x{alto}+{x}+{y-30}")
+        pantalla.deiconify()
+
+    # Funciones de validación 
+
+    ## Función de validación del formato de la fecha
+    def valida_Fecha(self, event = None):
+        ''' Configura  el formato correcto en el campo Fecha '''
+
+        fecha = self.fecha.get()
+
+        if event.char == " ":
+            self.fecha.delete(len(fecha) - 1, "end")
+        elif not event.char.isdigit():
+            return "break"
+        elif len(fecha) in [2,5]:
+            self.fecha.insert(fecha.index(" ") + 1 if " " in fecha else len(fecha), "/")
+        elif len(fecha) > 10: 
+            mssg.showerror("Solo es permitido un máximo de 10 carácteres")
+            self.fecha.delete(10, "end")
+
+    ## Función que valida la fecha
+    def fecha_Valida(self):
+        try:
+            dia, mes, ano = map(int, self.fecha.get().split("/"))
+            datetime(ano, mes, dia)
+            return True
+        except ValueError: 
+            mssg.showerror("La fecha ingresada no es una fecha válida. Por favor corregir a una fecha valida.")
+            return False
+
 
     def run_Query(self,query,parameters=(),op_Busqueda=0):
         try:
@@ -195,6 +281,7 @@ class Inscripciones_2:
             self.apellidos.insert(0, apellidos)
             self.apellidos.config(state="disabled")
             self.nombres.config(state="disabled")
+            self.num_Inscripción.config(state="disabled")
 
     def obtener_Inscripciones(self):
         self.num_Inscripción.delete(0, "end")
@@ -248,6 +335,18 @@ class Inscripciones_2:
                 self.run_Query(query, parameters)
                 mssg.showinfo("Exito", "Inscripcion realizada con exito")
                 self.obtener_Inscripciones()
+                self.num_Inscripción.config(state="enabled")
+                self.num_Inscripción.delete(0, "end")
+                self.descripc_Curso.config(state="enabled")
+                self.descripc_Curso.delete(0, "end")
+                self.horario.delete(0, "end")
+                self.cmbx_Id_Curso.delete(0, "end")
+                self.fecha.delete(0, "end")
+                self.cmbx_Id_Alumno.delete(0, "end")
+                self.nombres.config(state="enabled")
+                self.apellidos.config(state="enabled")
+                self.nombres.delete(0, "end")
+                self.apellidos.delete(0, "end")
 
 
     def verificar_Inscripcion(self, id_alumno, codigo_curso):
@@ -265,5 +364,5 @@ class Inscripciones_2:
            
         
 if __name__ == "__main__":
-    app = Inscripciones_2()
+    app = Inscripciones()
     app.run()
