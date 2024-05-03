@@ -131,33 +131,28 @@ class Inscripciones:
         #Boton Buscar
         self.btnGuardar = ttk.Button(self.frm_1, name="btnbuscar")
         self.btnGuardar.configure(text='Buscar')
-        self.btnGuardar.place(anchor="nw", x=120, y=260)
-
-        #Boton Agregar
-        self.btnGuardar = ttk.Button(self.frm_1, name="btnagregar")
-        self.btnGuardar.configure(text='Agregar')
-        self.btnGuardar.place(anchor="nw", x=220, y=260)
+        self.btnGuardar.place(anchor="nw", x=155, y=260)
 
         #Botón Guardar
         self.btnGuardar = ttk.Button(self.frm_1, name="btnguardar")
         self.btnGuardar.configure(text='Guardar')
-        self.btnGuardar.place(anchor="nw", x=320, y=260)
+        self.btnGuardar.place(anchor="nw", x=255, y=260)
         self.btnGuardar.bind("<Button-1>", self.guardar_Inscripcion)
         
         #Botón Editar
         self.btnEditar = ttk.Button(self.frm_1, name="btneditar")
         self.btnEditar.configure(text='Editar')
-        self.btnEditar.place(anchor="nw", x=420, y=260)
+        self.btnEditar.place(anchor="nw", x=355, y=260)
 
         #Botón Eliminar
         self.btnEliminar = ttk.Button(self.frm_1, name="btneliminar")
         self.btnEliminar.configure(text='Eliminar')
-        self.btnEliminar.place(anchor="nw", x=520, y=260)
+        self.btnEliminar.place(anchor="nw", x=455, y=260)
 
         #Botón Cancelar
         self.btnCancelar = ttk.Button(self.frm_1, name="btncancelar")
         self.btnCancelar.configure(text='Cancelar')
-        self.btnCancelar.place(anchor="nw", x=620, y=260)
+        self.btnCancelar.place(anchor="nw", x=555, y=260)
 
         #Separador
         separator1 = ttk.Separator(self.frm_1)
@@ -284,7 +279,7 @@ class Inscripciones:
             self.apellidos.insert(0, apellidos)
             self.apellidos.config(state="disabled")
             self.nombres.config(state="disabled")
-            self.num_Inscripción.config(state="disabled")
+            #self.num_Inscripción.config(state="disabled")
 
 
     def obtener_Inscripciones(self):
