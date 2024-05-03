@@ -259,12 +259,15 @@ class Inscripciones:
         except sqlite3.Error as e:
             print("Error executing query:", e)
             return None
+
+
     def obtener_Alumnos(self):
             query = "SELECT DISTINCT Id_Alumno FROM Alumnos ORDER BY Id_Alumno"
             results = self.run_Query(query, (), 2)
             if results:
                 ids_alumnos = [result[0] for result in results]
                 self.cmbx_Id_Alumno['values'] = ids_alumnos
+
     
     def escoger_Alumno(self,event):
         id_Alumno = self.cmbx_Id_Alumno.get()
@@ -283,9 +286,10 @@ class Inscripciones:
             self.nombres.config(state="disabled")
             self.num_Inscripción.config(state="disabled")
 
+
     def obtener_Inscripciones(self):
         self.num_Inscripción.delete(0, "end")
-        query = "SELECT DISTINCT No_Inscripcion FROM Inscritos ORDER BY No_Inscripcion"
+        query = "SELECT DISTINCT No_Inscripcion FROM Inscritos ORDER BY No_Inscripcion DESC"
         results = self.run_Query(query, (), 2)
         if results:
             ids_inscripciones = [result[0] for result in results]
