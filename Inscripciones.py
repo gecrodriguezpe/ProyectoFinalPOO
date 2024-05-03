@@ -128,6 +128,11 @@ class Inscripciones:
 
         ''' Botones  de la Aplicación'''
 
+        # Estilo para los botones 
+        self.botones = ttk.Style()
+        self.botones.configure("TButton", foreground = "RoyalBlue")
+        self.botones.map("TButton", foreground=[("active", "red2")])
+
         #Boton Buscar
         self.btnGuardar = ttk.Button(self.frm_1, name="btnbuscar")
         self.btnGuardar.configure(text='Buscar')
@@ -159,10 +164,16 @@ class Inscripciones:
         separator1.configure(orient="horizontal")
         separator1.place(anchor="nw", width=796, x=2, y=245)
 
-        ''' Treeview de la Aplicación'''
+        ''' Treeview de la Aplicación'''    
 
-        #Treeview
-        self.tView = ttk.Treeview(self.frm_1, name="tview")
+        # Estilo para el Treeview
+        self.style = ttk.Style()
+        self.style.configure("estilo.Treeview", highlightthickmess=0, bd=0, background="#e0e0e0", font = ("Calibri Light", 10))
+        self.style.configure("estilo.Treeview.Heading", background = "Azure", font = ("Calibri Light", 10, "bold"))
+        self.style.layout("estilo.Treeview", [("estilo.Treeview.treearea", {"sticky":"nswe"})])
+
+        # Creción del Treeview
+        self.tView = ttk.Treeview(self.frm_1, name="tview", style = "estilo.Treeview")
         self.tView.configure(selectmode="extended")
 
         #Columnas del Treeview
