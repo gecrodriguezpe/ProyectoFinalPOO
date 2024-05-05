@@ -28,11 +28,11 @@
     - Sale una ventana emergente que le pide por favor que seleccione el curso que desea eliminar y que vuelva a oprimir el botón eliminar 
     - Luego de seleccionar el curso que desea eliminar vuelve a oprimir el botón eliminar
       - Le aparece una ventana emergente que le pregunté sí desea confirmar la acción: 1) *Sí* o 2) *No*
-          1. *Sí*: Elimina la inscripción
-          2. *No*: Cancela la acción
+          - *Sí*: Elimina la inscripción
+          - *No*: Cancela la acción
   2. Si oprime *Eliminar inscripción* le debe aparecer una ventana emergente que le pregunté sí desea confirmar la acción: 1) *Sí* o 2) *No*
-    1. *Sí*: Elimina la inscripción
-    2. *No*: Cancela la acción
+    - *Sí*: Elimina la inscripción
+    - *No*: Cancela la acción
 
 ## Estandarización del código 
 - Comentarios:
