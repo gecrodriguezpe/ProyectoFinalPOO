@@ -12,6 +12,16 @@
 - David y Nicolay: Crear la base de datos en SQLite
 - Germán y Sofia: Modificar la plantilla del proyecto
 
+### Semana 2: 
+
+#### Botones
+- Germán: Realizar la funcionalidad del Botón **Guardar** que incluya lo del autoincremental
+- Nicolay: Realizar la funcionalidad del Botón **Editar** que incluya lo del cambio de botón
+- David: Realizar la funcionalidad del Botón **Eliminar** que incluya la ventana externa con las dos opciones:
+  - Elminar una asignatura específica
+  - Elminar toda la inscripción  
+- Sofía: Revisar el Notion con toda la documetnación relacionada con POO, tkinter, SQLite y las grabaciones de Fernando sobre el proyecto
+
 ## Estandarización del código 
 - Comentarios:
   - Comentarios simples: Colocarlos #
