@@ -531,6 +531,9 @@ class Inscripciones:
         self.btnEliminar.configure(state="normal")
         #self.btnEliminar.bind("<Button-1>", self.)
 
+        # 4. Resetea el valor del combobox "cmbx_Num_Inscripcion" al valor de la siguiente inscripción disponible
+        self.cmbx_Num_Inscripcion.set(self.cmbx_Num_Inscripcion["values"][0])
+
             
            
 # Ejecución del programa
