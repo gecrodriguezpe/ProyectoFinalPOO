@@ -162,7 +162,7 @@ class Inscripciones:
         self.btnCancelar = ttk.Button(self.frm_1, name="btncancelar")
         self.btnCancelar.configure(text='Cancelar')
         self.btnCancelar.place(anchor="nw", x=555, y=260)
-        self.btnCancelar.bind("<Button-1>", self.limpiar_campos)
+        self.btnCancelar.bind("<Button-1>", self.limpiar_Campos)
 
         #Separador
         separator1 = ttk.Separator(self.frm_1)
@@ -350,11 +350,12 @@ class Inscripciones:
             self.descripc_Curso.insert(0, descrip)
             self.horario.delete(0, "end")
             self.horario.insert(0, num_Horas)
-            self.horario.configure(state="disabled")
+            #self.horario.configure(state="disabled")
             self.descripc_Curso.configure(state="disabled")
 
     # Revisar con calma!!! Ajustar la función para que tenga el menú que le permita agregar asignaturas o salvar la inscripción y colocar el autoincrementar
     def guardar_Inscripcion(self, event):
+        '''  '''
         id_Alumno = self.cmbx_Id_Alumno.get()
         id_Curso = self.cmbx_Id_Curso.get()
         fecha = self.fecha.get()
@@ -400,6 +401,7 @@ class Inscripciones:
     
     # 
     def mostrar_Datos(self, event = None):
+        '''  '''
         no_Inscripcion = (self.cmbx_Num_Inscripcion.get(),)
         #print(no_Inscripcion)
         query = "SELECT Id_Alumno, Codigo_Curso, Horario FROM Inscritos WHERE No_Inscripcion = ?"
@@ -449,24 +451,32 @@ class Inscripciones:
     #     #self.treeInscritos.unbind("<<TreeviewSelect>>")
 
     def editar_Curso(self, event=None):
+        '''  '''
         # El if se ejecuta solo si un elemento del TreeView se encuentra seleccionado 
         if self.treeInscritos.selection():
+            # Desabilitar el botón "btnBuscar"
             self.btnBuscar.configure(state="disabled") 
             self.btnBuscar.unbind("<Button-1>")
+            # Obtener el ID del elemento que se encuentra actualemente seleccionado en el TreeView
             self.treeInscritos.selection()
             print(self.treeInscritos.selection())
             item = self.treeInscritos.selection()[0]
             item_Values = self.treeInscritos.item(item, "values")
+            # Insertar en el Combobox "cmbx_Id_Curso" el ID del curso del registro seleccionado en el Treeview
             self.cmbx_Id_Curso.configure(state="normal")
             self.cmbx_Id_Curso.delete(0, "end")
             self.cmbx_Id_Curso.insert(0,item_Values[0])
             self.cmbx_Id_Curso.configure(state="disabled")
+            # Ejecuta el método "escoger_Curso" para llenar las Entrys "descripc_Curso" y "horario"
             self.escoger_Curso()
+            # Habilitar el Combobox "cmbx_Id_Curso" y el Entry "horario" para poder ser editados
+            self.cmbx_Id_Curso.configure(state="normal")
+            self.horario.configure(state="normal")
         else: 
             pass
 
 
-    def limpiar_campos(self, event = None):
+    def limpiar_Campos(self, event = None):
         ''' Limpia todos los campos del frm1 '''
 
         # 1. Limpieza de los campos 
