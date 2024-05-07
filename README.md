@@ -22,6 +22,18 @@
   - Elminar toda la inscripción  
 - Sofía: Revisar el Notion con toda la documetnación relacionada con POO, tkinter, SQLite y las grabaciones de Fernando sobre el proyecto
 
+##### Botón Eliminar
+- Se oprime el botón **Eliminar**. Aparecé un menú con dos opciones: 1) *Eliminar Curso* o 2) *Eliminar inscripción*
+  1. Si oprime *Eliminar curso*
+    - Sale una ventana emergente que le pide por favor que seleccione el curso que desea eliminar y que vuelva a oprimir el botón eliminar 
+    - Luego de seleccionar el curso que desea eliminar vuelve a oprimir el botón eliminar
+      - Le aparece una ventana emergente que le pregunté sí desea confirmar la acción: 1) *Sí* o 2) *No*
+          - *Sí*: Elimina la inscripción
+          - *No*: Cancela la acción
+  2. Si oprime *Eliminar inscripción* le debe aparecer una ventana emergente que le pregunté sí desea confirmar la acción: 1) *Sí* o 2) *No*
+    - *Sí*: Elimina la inscripción
+    - *No*: Cancela la acción
+
 ## Estandarización del código 
 - Comentarios:
   - Comentarios simples: Colocarlos #
