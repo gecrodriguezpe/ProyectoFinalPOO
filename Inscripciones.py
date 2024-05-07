@@ -157,7 +157,8 @@ class Inscripciones:
         self.btnEliminar = ttk.Button(self.frm_1, name="btneliminar")
         self.btnEliminar.configure(text='Eliminar')
         self.btnEliminar.place(anchor="nw", x=455, y=260)
-
+        self.btnEliminar.bind("<Button-1>", self.crear_Ventana_Eliminar)
+        
         #Botón Cancelar
         self.btnCancelar = ttk.Button(self.frm_1, name="btncancelar")
         self.btnCancelar.configure(text='Cancelar')
@@ -475,7 +476,122 @@ class Inscripciones:
         else: 
             pass
 
+    def crear_Ventana_Eliminar(self, event):
+        #Creacion de la ventana
+        self.ventana_Borrar = tk.Toplevel()
+        self.ventana_Borrar.title("Borrar datos")
+        self.ventana_Borrar.config(width= 300, height= 150)
+        self.centrar_Pantalla(self.ventana_Borrar, 300, 150)
+        
+        #No permitir cambiar tamaño de la ventana
+        self.ventana_Borrar.resizable(False, False)
+        
+        #creacion labelframe        
+        self.marco = tk.LabelFrame(self.ventana_Borrar, text = "¿Que desea realizar?", fg="RoyalBlue")
+        self.marco.pack(pady=10, padx=10)
 
+        self.opcion = tk.IntVar()
+
+        #crear radiobutton
+        self.radiobutton1 = tk.Radiobutton(self.marco, text="Borrar un curso", variable= self.opcion, value= 1, 
+                                           foreground = "RoyalBlue", activeforeground="red2"
+                                           )       
+        self.radiobutton1.pack(anchor="w", pady=5)
+        self.radiobutton2 = tk.Radiobutton(self.marco, text="Borrar todos los cursos", variable= self.opcion, value=2,
+                                           foreground = "RoyalBlue", activeforeground="red2"
+                                           )
+        self.radiobutton2.pack(anchor="w", pady=5)
+        
+        self.btn_Vna_Borrar = ttk.Button(self.ventana_Borrar, name="btn_Vna_Borrar")
+        self.btn_Vna_Borrar.configure(text="Borrar")
+        self.btn_Vna_Borrar.bind("<Button-1>", self.eliminar_Curso)
+        self.btn_Vna_Borrar.pack()
+        
+        #Moverse hacia la ventana borrar 
+        self.ventana_Borrar.after(100, self.ventana_Borrar.focus)
+        
+        #Mantenerse en la ventana borrar
+        self.ventana_Borrar.grab_set()
+        #crear boton borrar
+        #self.close_button = tk.Button(self.ventana_Borrar, text="Borrar", command= self.ventana_Borrar.destroy, width=10, height=1)
+        #self.close_button.pack(pady=5)
+        
+       
+
+        
+    def eliminar_Curso(self, event):
+        opcion = self.opcion.get()
+        #verificar si esta seleccionado una opcion en la ventana borrar
+        if opcion:
+            #verificar que opcion esta seleccionado en la ventana borrar
+            if opcion == 1:
+                #Eliminar un curso
+                #verificar si esta seleccionado un curso en el treewiew
+                if self.treeInscritos.selection():
+                    seleccion = self.treeInscritos.selection()[0]
+                    seleccion_Values = self.treeInscritos.item(seleccion, "values")
+                    codigo_Curso = seleccion_Values[0]
+                    nombre_Curso = seleccion_Values[1]
+                    mensaje = f"¿Desea eliminar este curso: ({codigo_Curso}) {nombre_Curso}?"
+                    confirmacion = mssg.askokcancel("Confirmacion", mensaje)
+                    if confirmacion:
+                        num_Incripcion = self.cmbx_Num_Inscripcion.get()
+                        query1 = "SELECT COUNT(No_Inscripcion) FROM Inscritos WHERE No_Inscripcion = ?"
+                        parametros1 = (num_Incripcion,)
+                        cantidad_Inscripciones = self.run_Query(query1, parametros1, 1)[0]
+                        query2 = "DELETE FROM Inscritos WHERE No_Inscripcion = ? AND Codigo_Curso = ?"
+                        parametros2 = (num_Incripcion, codigo_Curso)
+                        borrar = self.run_Query(query2, parametros2)    
+                        query3 = "SELECT COUNT(No_Inscripcion) FROM Inscritos WHERE No_Inscripcion = ? AND Codigo_Curso = ?"
+                        confirmacion_Eliminar = self.run_Query(query3,parametros2, 1)[0]
+                        #confirmar si se elimino el curso
+                        if confirmacion_Eliminar == 0:
+                            mensaje = f"El curso ({codigo_Curso}) {nombre_Curso} ha sido borrado con exito."
+                            if cantidad_Inscripciones == 1:
+                                self.ventana_Borrar.destroy()
+                                mssg.showinfo("Exito", mensaje)
+                                self.limpiar_Campos()
+                                self.obtener_Inscripciones()
+                            else:
+                                self.treeInscritos.delete(seleccion)
+                                self.ventana_Borrar.destroy()
+                                mssg.showinfo("Exito", mensaje)
+                                
+                        else:
+                            mensaje = f"No se ha podido borrar el curso ({codigo_Curso}) {nombre_Curso}."
+                            self.ventana_Borrar.destroy()
+                            mssg.showerror("Error", mensaje)
+                        
+                else:
+                    self.ventana_Borrar.destroy()
+                    mssg.showerror("Error", "Seleccione un curso")
+            elif opcion == 2:
+                #Eliminar todos los cursos
+                confirmacion = mssg.askokcancel("Confirmacion", "¿Desea eliminar todos los curso?")
+                if confirmacion:
+                    num_Incripcion = self.cmbx_Num_Inscripcion.get()
+                    query = "SELECT COUNT(No_Inscripcion) FROM Inscritos WHERE No_Inscripcion = ?"
+                    parametro = (num_Incripcion,)
+                    result = self.run_Query(query, parametro, 1)[0]
+                    if result >= 1:
+                        query = "DELETE FROM Inscritos WHERE No_Inscripcion = ?"
+                        parametro = (num_Incripcion,)
+                        ejecucion = self.run_Query(query, parametro)
+                        mensaje = f"Se han borrado todos los cursos de la inscripcion No.{num_Incripcion}"
+                        self.limpiar_Campos()
+                        self.obtener_Inscripciones()
+                        self.ventana_Borrar.destroy()
+                        mssg.showinfo("Exito", mensaje)
+                    else:
+                        mensaje = f"El numero de inscripcion {num_Incripcion} no tiene cursos inscriptos."
+                        self.ventana_Borrar.destroy()
+                        mssg.showerror("Error", mensaje)
+                        
+                
+                
+        else:
+           mssg.showerror("Error", "Seleccione una opcion")
+        
     def limpiar_Campos(self, event = None):
         ''' Limpia todos los campos del frm1 '''
 
