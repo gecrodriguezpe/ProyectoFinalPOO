@@ -15,20 +15,22 @@ ICON = r"/img/firefox.ico"
 
 # Directorio donde se encuentra la base de datos 
 DB = r"/db/Inscripciones.db"
-#DB = r"/db/Inscripciones_pruebas.db"
+# DB = r"/db/Inscripciones_pruebas.db"
 
 # Clase con la interfaz gráfica del programa
 class Inscripciones:
 
     # Constructor de la clase Inscripciones
     def __init__(self, master=None):
-         
-        # 
-        #self.contador = self.buscar_mayor
 
-        # Ventana principal
-        ancho_Win = 800;  alto_Win = 600 # Dimensiones de la ventana principal
+        # Base de datos que alimenta al programa 
         self.db_name = PATH + DB # Base de datos
+
+        # Contador que permite almancer el valor del autoincremental que corresponde al siguiente número de inscripción 
+        self.autoincrementar_Contador = self.obtener_Autoincrementar_Contador() 
+
+        # Ventana principal del programa
+        ancho_Win = 800;  alto_Win = 600 # Dimensiones de la ventana principal
         self.win = tk.Tk(master) # Ventana principal
         self.win.configure(background="#f7f9fd", height=alto_Win, width=ancho_Win) # Configuraciones de la ventana
         self.win.geometry(f"{ancho_Win}x{alto_Win}") # Geometría de la ventana
@@ -262,7 +264,7 @@ class Inscripciones:
         
     # Funciones de interacción con la base de datos 
 
-    def run_Query(self,query,parameters=(),op_Busqueda=0):
+    def run_Query(self,query,parameters=(), op_Busqueda=0):
         ''' Realizar Queries a la base de datos de SQLite '''
         try:
             with sqlite3.connect(self.db_name) as conn:
@@ -278,6 +280,16 @@ class Inscripciones:
             print("Error executing query:", e)
             return None
 
+    def obtener_Autoincrementar_Contador(self):
+        ''' Obtener el valor máximo de la columna "No_Inscripcion" de la tabla "Inscritos" que se le va a asignar al contador que llevará el valor del autoincrementar del campo No.Inscripcion '''
+        query = "SELECT MAX(No_Inscripcion) FROM Inscritos"
+        result = self.run_Query(query, (), 1)
+
+        if result[0] == None: 
+            return 1
+
+        else:
+            return result[0] + 1
 
     def obtener_Alumnos(self):
         ''' Poner los IDs de los alumnos de la tabla "Alumnos" en el combobox "cmbx_Id_Alumno" '''            
@@ -315,7 +327,7 @@ class Inscripciones:
         if results:
             # Caso que ocurre cuándo la tabla "Inscritos" no está vacía
             ids_Inscripciones = [result[0] for result in results]
-            sig_Num_Inscripcion = max(ids_Inscripciones) + 1
+            sig_Num_Inscripcion = self.autoincrementar_Contador
             ids_Inscripciones.insert(0, sig_Num_Inscripcion)
             self.cmbx_Num_Inscripcion['values'] = ids_Inscripciones
             id_Predeterminado = sig_Num_Inscripcion
@@ -353,51 +365,104 @@ class Inscripciones:
             #self.horario.configure(state="disabled")
             self.descripc_Curso.configure(state="disabled")
 
-    # Revisar con calma!!! Ajustar la función para que tenga el menú que le permita agregar asignaturas o salvar la inscripción y colocar el autoincrementar
+    ## Funcionalidad para el botón "Guardar"
+
+    ### Función auxiliar1: Permite verificar que un alumno no inscriba el mismo curso dos veces en la misma inscripcion
+    def verificar_No_Primary_Keys_Repetidas(self, id_Alumno, codigo_Curso, no_Inscripcion):
+        ''' Verifica que un alumno no inscriba el mismo curso dos veces en la misma inscripcion '''
+        query = "SELECT * FROM Inscritos WHERE Id_Alumno = ? AND Codigo_Curso = ? AND No_Inscripcion = ?"
+        result = self.run_Query(query, (id_Alumno, codigo_Curso, no_Inscripcion), 1) # El query debe traer un registro único para las 3 primary keys: "No_Inscripcion", "Id_Alumno" y "Codigo_Curso"
+
+        # Verifica si el registro con las caracteristicas del query ya se encuentra en la base de datos o no
+        if result != None:
+            return True  # El alumno ya inscribió el curso en esta inscripción
+        else:
+            return False # El alumno no ha inscrito el curso en esta inscripción
+        
+    ### Función auxiliar2: No permite que dos alumnos diferentes inscriban en la misma inscripción 
+    def verificar_No_Dos_Alumnos_Misma_Inscripcion(self, no_Inscripcion, id_Alumno):
+        ''' Verifica que no haya dos alumnos en la misma inscriçión '''
+        query = "SELECT Id_Alumno FROM Inscritos WHERE No_Inscripcion = ?"
+        result = self.run_Query(query, (no_Inscripcion, ), 1)
+
+        # Verifica si el query arroja un resultado "None" o no, que implica que si el número de inscripción se encuentra en la base de datos "Inscritos" o no
+        if result == None:
+            return False # El número de inscripción no se encuentra aún registrado en la columna "No_Inscripcion" de la base de datos "Inscritos"
+        else:
+            if id_Alumno != result[0]:
+                return True  # Los dos alumnos son diferentes, lo cuál no es permitido
+            else:
+                return False # El alumno es el mismo, y no hay problema con la inscripción
+        
+    
+    ### Revisar con calma!!! Ajustar la función para que tenga el menú que le permita agregar asignaturas o salvar la inscripción y colocar el autoincrementar
     def guardar_Inscripcion(self, event):
         '''  '''
+
+        # Inicialmente, se verifica que el usuario haya diligenciado todos los campos requeridos para formalizar la inscripción: 
+        # Se verifican los Combobx "cmbx_Id_Alumno", "cmbx_Id_Curso" y el Entry "fecha" porque al llenar éstos, se llena el resto del formulario 
         id_Alumno = self.cmbx_Id_Alumno.get()
         id_Curso = self.cmbx_Id_Curso.get()
         fecha = self.fecha.get()
+
+        # Número de inscripción que se encuentra actualmente en el combobox "no_Inscripcion"
+        no_Inscripcion = self.cmbx_Num_Inscripcion.get()
+
+        # Horario de inscripción 
+        horario_Curso = self.horario.get()   
         
+        # Se verifica que no haya campos importantes vacíos para realizar la inscripción
         if not id_Alumno or not id_Curso or not fecha:
             mssg.showerror("Error", "Por favor, complete todos los campos")
         else:
-            # Verificar si el alumno ya está inscrito en el curso
-            if self.verificar_Inscripcion(id_Alumno, id_Curso):
-                mssg.showerror("Error", "El alumno ya se encuentra inscrito en el curso")
+            # Verificar que el alumno que está inscribiendo en la inscriçión correspondiente a "no_Inscripcion" es el que corresponde a la inscripción y no un alumnto diferente
+            if self.verificar_No_Dos_Alumnos_Misma_Inscripcion(no_Inscripcion, id_Alumno):
+                mssg.showerror("Error", f"El código del alumno {id_Alumno} no corresponde al código del alumno correspondiente a la inscripción {no_Inscripcion}")
             else:
-                # Insertar nueva inscripción en la tabla Inscritos
-                query = "INSERT INTO Inscritos (Id_Alumno, Codigo_Curso, Fecha_Inscripcion) VALUES (?, ?, ?)"
-                parameters = (id_Alumno, id_Curso, fecha)
-                self.run_Query(query, parameters)
-                mssg.showinfo("Exito", "Inscripcion realizada con exito")
-                self.obtener_Inscripciones()
-                self.cmbx_Num_Inscripcion.configure(state="normal")
-                self.cmbx_Num_Inscripcion.delete(0, "end")
-                self.descripc_Curso.configure(state="normal")
-                self.descripc_Curso.delete(0, "end")
-                self.horario.delete(0, "end")
-                self.cmbx_Id_Curso.delete(0, "end")
-                self.fecha.delete(0, "end")
-                self.cmbx_Id_Alumno.delete(0, "end")
-                self.nombres.configure(state="normal")
-                self.apellidos.configure(state="normal")
-                self.nombres.delete(0, "end")
-                self.apellidos.delete(0, "end")
+                # Verificar si el alumno ya inscribió el curso en está inscripción (i.e. no puede haber cursos repetidos para un alumno en la misma inscripción)
+                if self.verificar_No_Primary_Keys_Repetidas(id_Alumno, id_Curso, no_Inscripcion):
+                    mssg.showerror("Error", f"El alumno identificado con código {id_Alumno} ya se encuentra inscrito en el curso con código {id_Curso} para la inscripción No. {no_Inscripcion}")
+                else:
+                    # Query que inserta nueva inscripción en la tabla Inscritos
+                    query = "INSERT INTO Inscritos (No_Inscripcion, Id_Alumno, Codigo_Curso, Fecha_Inscripcion, Horario) VALUES (?, ?, ?, ?, ?)"
+                    parameters = (no_Inscripcion, id_Alumno, id_Curso, fecha, horario_Curso)
+                    self.run_Query(query, parameters)
 
-    # Función auxiliar: Verifica que el curso si se encuentre inscrito
-    def verificar_Inscripcion(self, id_alumno, codigo_curso):
-        query = "SELECT FROM Inscritos WHERE Id_Alumno = ? AND Codigo_Curso = ?"
-        result = self.run_Query(query, (id_alumno, codigo_curso), 1)
-        if result[0] > 0:
-            return True  # El alumno ya está inscrito en el curso
-        else:
-            return False 
-    
-    # Qué quería hacer acá Nicolay??
-    def obtener_datos(self, event):
-        pass
+                    # Condicional para verificar si se debe incrementar el contador del autoincrementar
+                    if (int(no_Inscripcion) == int(self.autoincrementar_Contador)):
+                        # Se incrementa el valor del autoincrementar del No. de inscripción
+                        self.autoincrementar_Contador += 1
+
+                        # Se ingresa dicho valor del nuevo autoincrementar dentro del combobox "cmbx_Num_Inscripcion"
+                        lista_No_Inscripcion = list(self.cmbx_Num_Inscripcion["values"])
+                        lista_No_Inscripcion.insert(0, self.autoincrementar_Contador)
+                        self.cmbx_Num_Inscripcion["values"] = lista_No_Inscripcion
+                    
+                    # Mensaje que confirma que la inscripción se ha realizado con éxito
+                    mssg.showinfo("Exito", "Inscripcion realizada con exito")
+                    
+                    # Configura los campos luego de realizar una inscripción con éxito 
+                    
+                    ## 
+                    self.cmbx_Num_Inscripcion.set(no_Inscripcion)
+                    self.cmbx_Num_Inscripcion.configure(state="disabled")
+
+                    ## 
+                    self.fecha.configure(state="disabled")
+
+                    ## 
+                    self.cmbx_Id_Alumno.configure(state="disabled")
+
+                    ## 
+                    self.cmbx_Id_Curso.configure(state="normal")
+                    self.cmbx_Id_Curso.delete(0, "end")
+
+                    self.descripc_Curso.configure(state="normal")
+                    self.descripc_Curso.delete(0, "end")
+
+                    self.horario.configure(state="normal")
+                    self.horario.delete(0, "end")
+                    
     
     # 
     def mostrar_Datos(self, event = None):
@@ -450,6 +515,7 @@ class Inscripciones:
     # #     self.treeInscritos.selection_clear()
     #     #self.treeInscritos.unbind("<<TreeviewSelect>>")
 
+    ## Funcionalidad para el botón "Editar"
     def editar_Curso(self, event=None):
         '''  '''
         # El if se ejecuta solo si un elemento del TreeView se encuentra seleccionado 
@@ -475,7 +541,7 @@ class Inscripciones:
         else: 
             pass
 
-
+    ## Funcionalidad para el botón "Cancelar"
     def limpiar_Campos(self, event = None):
         ''' Limpia todos los campos del frm1 '''
 
@@ -509,6 +575,10 @@ class Inscripciones:
         self.horario.configure(state="normal")
         self.horario.delete(0, "end")
 
+        ## Se limpia el campo "cmbx_Num_Inscripcion"
+        self.cmbx_Num_Inscripcion.configure(state="normal")
+        self.cmbx_Num_Inscripcion.delete(0, "end")
+
         # 2. Limpieza del TreeView
         self.treeInscritos.delete(*self.treeInscritos.get_children())
         self.treeInscritos.selection_remove()
@@ -537,6 +607,14 @@ class Inscripciones:
             
            
 # Ejecución del programa
-if __name__ == "__main__":
+if __name__ == "__main__":#
     app = Inscripciones()
+    app.verificar_No_Dos_Alumnos_Misma_Inscripcion("A005", 36)
+    app.verificar_No_Dos_Alumnos_Misma_Inscripcion("A002", 1)
     app.run()
+
+## hola: Diferentes
+## yes: Iguales
+
+# 34: A005
+# 1: A002
