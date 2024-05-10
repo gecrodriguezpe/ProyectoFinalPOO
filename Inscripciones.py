@@ -582,14 +582,14 @@ class Inscripciones:
                                            foreground = "RoyalBlue", activeforeground="red2"
                                            )       
         self.radiobutton1.pack(anchor="w", pady=5)
-        self.radiobutton2 = tk.Radiobutton(self.marco, text="Borrar todos los cursos", variable= self.opcion, value=2,
+        self.radiobutton2 = tk.Radiobutton(self.marco, text="Borrar toda la inscripción", variable= self.opcion, value=2,
                                            foreground = "RoyalBlue", activeforeground="red2"
                                            )
         self.radiobutton2.pack(anchor="w", pady=5)
         
         self.btn_Vna_Borrar = ttk.Button(self.ventana_Borrar, name="btn_Vna_Borrar")
         self.btn_Vna_Borrar.configure(text="Borrar")
-        self.btn_Vna_Borrar.bind("<Button-1>", self.eliminar_Curso)
+        self.btn_Vna_Borrar.bind("<Button-1>", self.eliminar_Cursos)
         self.btn_Vna_Borrar.pack()
         
         #Moverse hacia la ventana borrar 
@@ -602,7 +602,7 @@ class Inscripciones:
         #self.close_button.pack(pady=5)
 
     ### Función para eliminar un curso o toda la inscripción completa
-    def eliminar_Curso(self, event):
+    def eliminar_Cursos(self, event):
         opcion = self.opcion.get()
         #verificar si esta seleccionado una opcion en la ventana borrar
         if opcion:
