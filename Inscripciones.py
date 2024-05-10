@@ -14,8 +14,8 @@ PATH = str((Path(__file__).resolve()).parent)
 ICON = r"/img/firefox.ico"
 
 # Directorio donde se encuentra la base de datos 
-DB = r"/db/Inscripciones.db"
-# DB = r"/db/Inscripciones_pruebas.db"
+# DB = r"/db/Inscripciones.db"
+DB = r"/db/Inscripciones_pruebas.db"
 
 # Clase con la interfaz gráfica del programa
 class Inscripciones:
@@ -282,15 +282,16 @@ class Inscripciones:
             return None
 
     def obtener_Autoincrementar_Contador(self):
-        ''' Obtener el valor máximo de la columna "No_Inscripcion" de la tabla "Inscritos" que se le va a asignar al contador que llevará el valor del autoincrementar del campo No.Inscripcion '''
-        query = "SELECT MAX(No_Inscripcion) FROM Inscritos"
+        ''' Obtener el valor que se encuentra almacenado en la columna "No_Inscripcion_Autoincremental" de la tabla "Autoincremental" que se le va a asignar al contador que llevará el valor del autoincrementar del campo No.Inscripcion '''
+        query = "SELECT No_Inscripcion_Autoincremental FROM Autoincremental"
         result = self.run_Query(query, (), 1)
 
-        if result[0] == None: 
+        # Condicional que determina que acción ejectuar, dependiendo de si la tabla "Autoincremental" está vacía o no
+        # Si la tabla está vacía, significa que aún no se ha generado el primer registro o inscripción en la tabla "Inscritos"
+        if result == None: 
             return 1
-
         else:
-            return result[0] + 1
+            return result[0]
 
     def obtener_Alumnos(self):
         ''' Poner los IDs de los alumnos de la tabla "Alumnos" en el combobox "cmbx_Id_Alumno" '''            
@@ -335,7 +336,7 @@ class Inscripciones:
             
         else:
             # Caso que ocurre cuándo la tabla "Inscritos" está vacía
-            id_Predeterminado = 1
+            id_Predeterminado = self.autoincrementar_Contador
             self.cmbx_Num_Inscripcion['values'] = [id_Predeterminado]
 
         self.cmbx_Num_Inscripcion.set(id_Predeterminado)
@@ -396,9 +397,9 @@ class Inscripciones:
                 return False # El alumno es el mismo, y no hay problema con la inscripción
         
     
-    ### Revisar con calma!!! Ajustar la función para que tenga el menú que le permita agregar asignaturas o salvar la inscripción y colocar el autoincrementar
+    ### Función para guardar un curso: Permite guardar una curso dentro de la inscripción 
     def guardar_Inscripcion(self, event):
-        '''  '''
+        ''' Guarda la inscripción de un curso '''
 
         # Inicialmente, se verifica que el usuario haya diligenciado todos los campos requeridos para formalizar la inscripción: 
         # Se verifican los Combobx "cmbx_Id_Alumno", "cmbx_Id_Curso" y el Entry "fecha" porque al llenar éstos, se llena el resto del formulario 
@@ -438,6 +439,19 @@ class Inscripciones:
                         lista_No_Inscripcion = list(self.cmbx_Num_Inscripcion["values"])
                         lista_No_Inscripcion.insert(0, self.autoincrementar_Contador)
                         self.cmbx_Num_Inscripcion["values"] = lista_No_Inscripcion
+
+                        # Se actualiza el valor almacenado en la columna "No_Inscripcion_Autoincremental" de la tabla "Autoincremental"
+
+                        # Si es la primera vez que se guarda una inscripción o registro en la tabla "Inscritos", entonces se crea el registro dentro de la columna "No_Inscripcion_Autoincremental" de la tabla "Autoincremental"
+                        # De lo contrario, se actualiza el valor dentro de la columna "No_Inscripcion_Autoincremental" de la tabla "Autoincremental" al valor que se encuentre almancenado en la variable self.autoincrementar_Contador
+                        if (self.autoincrementar_Contador == 2):
+                            query2 = "INSERT INTO Autoincremental (No_Inscripcion_Autoincremental) VALUES (?)"
+                            parameters2 = (self.autoincrementar_Contador, )
+                            self.run_Query(query2, parameters2)
+                        else:    
+                            query2 = "UPDATE Autoincremental SET No_Inscripcion_Autoincremental = ?"
+                            parameters2 = (self.autoincrementar_Contador, )
+                            self.run_Query(query2, parameters2)
                     
                     # Mensaje que confirma que la inscripción se ha realizado con éxito
                     mssg.showinfo("Exito", "Inscripcion realizada con exito")
@@ -517,6 +531,8 @@ class Inscripciones:
     #     #self.treeInscritos.unbind("<<TreeviewSelect>>")
 
     ## Funcionalidad para el botón "Editar"
+
+    ### Función para editar un curso
     def editar_Curso(self, event=None):
         '''  '''
         # El if se ejecuta solo si un elemento del TreeView se encuentra seleccionado 
@@ -542,6 +558,9 @@ class Inscripciones:
         else: 
             pass
 
+    ## Funcionalidad para el botón "Eliminar"
+
+    ### Función para crear ventana emergente que pregunta si se debe eliminar un curso o toda la inscripción
     def crear_Ventana_Eliminar(self, event):
         #Creacion de la ventana
         self.ventana_Borrar = tk.Toplevel()
@@ -581,10 +600,8 @@ class Inscripciones:
         #crear boton borrar
         #self.close_button = tk.Button(self.ventana_Borrar, text="Borrar", command= self.ventana_Borrar.destroy, width=10, height=1)
         #self.close_button.pack(pady=5)
-        
-       
 
-        
+    ### Función para eliminar un curso o toda la inscripción completa
     def eliminar_Curso(self, event):
         opcion = self.opcion.get()
         #verificar si esta seleccionado una opcion en la ventana borrar
@@ -633,7 +650,7 @@ class Inscripciones:
                     mssg.showerror("Error", "Seleccione un curso")
             elif opcion == 2:
                 #Eliminar todos los cursos
-                confirmacion = mssg.askokcancel("Confirmacion", "¿Desea eliminar todos los curso?")
+                confirmacion = mssg.askokcancel("Confirmacion", "¿Desea eliminar todos los cursos?")
                 if confirmacion:
                     num_Incripcion = self.cmbx_Num_Inscripcion.get()
                     query = "SELECT COUNT(No_Inscripcion) FROM Inscritos WHERE No_Inscripcion = ?"
@@ -652,12 +669,13 @@ class Inscripciones:
                         mensaje = f"El numero de inscripcion {num_Incripcion} no tiene cursos inscriptos."
                         self.ventana_Borrar.destroy()
                         mssg.showerror("Error", mensaje)
-                        
-                
-                
+
         else:
            mssg.showerror("Error", "Seleccione una opcion")
         
+    ## Funcionalidad para el botón "Cancelar"
+
+    ### Función para cancelar: Limpia los campos del GUI
     def limpiar_Campos(self, event = None):
         ''' Limpia todos los campos del frm1 '''
 
@@ -717,20 +735,16 @@ class Inscripciones:
         self.btnEliminar.configure(state="normal")
         #self.btnEliminar.bind("<Button-1>", self.)
 
-        # 4. Resetea el valor del combobox "cmbx_Num_Inscripcion" al valor de la siguiente inscripción disponible
+        # 4. Añadir al combobox "cmbx_Num_Inscripcion" el valor de la siguiente inscripción disponible
+        
+        ## Añadir al combobox "cmbx_Num_Inscripcion" el valor de la siguiente inscripción disponible
         self.cmbx_Num_Inscripcion.set(self.cmbx_Num_Inscripcion["values"][0])
-
-            
+        ## Disabilitar el combobox cmbx_Num_Inscripcion para que no pueda ser editado
+        self.cmbx_Num_Inscripcion.configure(state="readonly")     
            
 # Ejecución del programa
-if __name__ == "__main__":#
+if __name__ == "__main__":
     app = Inscripciones()
     app.verificar_No_Dos_Alumnos_Misma_Inscripcion("A005", 36)
     app.verificar_No_Dos_Alumnos_Misma_Inscripcion("A002", 1)
     app.run()
-
-## hola: Diferentes
-## yes: Iguales
-
-# 34: A005
-# 1: A002
