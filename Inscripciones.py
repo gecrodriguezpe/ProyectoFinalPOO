@@ -61,7 +61,7 @@ class Inscripciones:
         self.lblFecha.place(anchor="nw", x=630, y=80)
 
         #Entry Fecha
-        self.fecha = ttk.Entry(self.frm_1, name="fecha")
+        self.fecha = ttk.Entry(self.frm_1, name="fecha", validate="key", validatecommand=(self.frm_1.register(self.valida_Fecha_Entrada), "%P"))
         self.fecha.configure(justify="center")
         self.fecha.place(anchor="nw", width=90, x=680, y=80)
         self.fecha.bind("<KeyRelease>", self.valida_Fecha)
@@ -238,19 +238,19 @@ class Inscripciones:
     # Funciones de validación 
 
     ## Función de validación del formato de la fecha
-    def valida_Fecha(self, event = None):
-        ''' Configura  el formato correcto en el campo Fecha '''
-
+    
+    def valida_Fecha_Entrada(self, text):
+        ''' Configuracion para que el usuario no pueda introducir letras en el campo Fecha '''
+        return all(char.isdigit() or char == "/" for char in text)
+    
+    def valida_Fecha(self, event = None):  
+        ''' Configura  el formato correcto en el campo Fecha dd/mm/aaaa '''
         fecha = self.fecha.get()
 
-        if event.char == " ":
-            self.fecha.delete(len(fecha) - 1, "end")
-        elif not event.char.isdigit():
-            return "break"
-        elif len(fecha) in [2,5]:
+        if len(fecha) in [2,5]:
             self.fecha.insert(fecha.index(" ") + 1 if " " in fecha else len(fecha), "/")
         elif len(fecha) > 10: 
-            mssg.showerror("Solo es permitido un máximo de 10 carácteres")
+            mssg.showerror("Error","Solo es permitido un máximo de 10 carácteres")
             self.fecha.delete(10, "end")
 
     ## Función que valida la fecha
@@ -460,13 +460,6 @@ class Inscripciones:
                     
                     ## 
                     self.cmbx_Num_Inscripcion.set(no_Inscripcion)
-                    self.cmbx_Num_Inscripcion.configure(state="disabled")
-
-                    ## 
-                    self.fecha.configure(state="disabled")
-
-                    ## 
-                    self.cmbx_Id_Alumno.configure(state="disabled")
 
                     ## 
                     self.cmbx_Id_Curso.configure(state="normal")
@@ -505,60 +498,8 @@ class Inscripciones:
             self.descripc_Curso.configure(state="normal")
             self.horario.configure(state="normal")
             self.descripc_Curso.delete(0, "end")
-            self.horario.delete(0, "end")
-            self.horario.insert(0, "hola")
-
-    #    
-    # Toco desactivar esta función porque el <<TreeviewSelect>> estaba generando problemas
-    # 
-    # def seleccionar_Item(self, event):
-    #     # Desabilitar el botón "btnBuscar"
-    #     #self.btnBuscar.configure(state="disabled") 
-    #     #self.btnBuscar.unbind("<Button-1>")
-    #     # 
-    #     print(self.treeInscritos.selection())
-    #     if self.treeInscritos.selection():
-    #         item = self.treeInscritos.selection()[0]
-    #         item_Values = self.treeInscritos.item(item, "values")
-    #         self.cmbx_Id_Curso.configure(state="normal")
-    #         self.cmbx_Id_Curso.delete(0, "end")
-    #         self.cmbx_Id_Curso.insert(0,item_Values[0])
-    #         self.cmbx_Id_Curso.configure(state="disabled")
-    #         self.escoger_Curso()
-    #     else:
-    #         return None
-    # #     self.treeInscritos.selection_clear()
-    #     #self.treeInscritos.unbind("<<TreeviewSelect>>")
-
-    ## Funcionalidad para el botón "Editar"
-
-    ### Función para editar un curso
-    def editar_Curso(self, event=None):
-        '''  '''
-        # El if se ejecuta solo si un elemento del TreeView se encuentra seleccionado 
-        if self.treeInscritos.selection():
-            # Desabilitar el botón "btnBuscar"
-            self.btnBuscar.configure(state="disabled") 
-            self.btnBuscar.unbind("<Button-1>")
-            # Obtener el ID del elemento que se encuentra actualemente seleccionado en el TreeView
-            self.treeInscritos.selection()
-            print(self.treeInscritos.selection())
-            item = self.treeInscritos.selection()[0]
-            item_Values = self.treeInscritos.item(item, "values")
-            # Insertar en el Combobox "cmbx_Id_Curso" el ID del curso del registro seleccionado en el Treeview
-            self.cmbx_Id_Curso.configure(state="normal")
-            self.cmbx_Id_Curso.delete(0, "end")
-            self.cmbx_Id_Curso.insert(0,item_Values[0])
-            self.cmbx_Id_Curso.configure(state="disabled")
-            # Ejecuta el método "escoger_Curso" para llenar las Entrys "descripc_Curso" y "horario"
-            self.escoger_Curso()
-            # Habilitar el Combobox "cmbx_Id_Curso" y el Entry "horario" para poder ser editados
-            self.cmbx_Id_Curso.configure(state="normal")
-            self.horario.configure(state="normal")
-        else: 
-            pass
-
-    ## Funcionalidad para el botón "Eliminar"
+        else:
+            mssg.showerror("Advertencia", f"No se encuentra ninguna inscripción con el No. de inscripción: {self.cmbx_Num_Inscripcion.get()}")
 
     ### Función para crear ventana emergente que pregunta si se debe eliminar un curso o toda la inscripción
     def crear_Ventana_Eliminar(self, event):
@@ -672,7 +613,65 @@ class Inscripciones:
 
         else:
            mssg.showerror("Error", "Seleccione una opcion")
-        
+    
+    def editar_Curso(self, event):
+        if self.treeInscritos.selection():
+            seleccion = self.treeInscritos.selection()[0]
+            seleccion_Values = self.treeInscritos.item(seleccion, "values")
+            self.curso_Actual = seleccion_Values[0]
+            self.desc_Curso_Actual = seleccion_Values[1]
+            self.horario_Actual = seleccion_Values[2]
+            self.cmbx_Id_Curso.delete(0, "end")
+            self.cmbx_Id_Curso.insert(0, self.curso_Actual)
+            self.descripc_Curso.delete(0, "end")
+            self.descripc_Curso.insert(0, self.desc_Curso_Actual)
+            self.horario.delete(0, "end")
+            self.horario.insert(0, self.horario_Actual)
+            #Bloquear los botones 
+            self.descripc_Curso.configure(state="disabled")
+            self.btnBuscar.configure(state="disabled")
+            self.btnBuscar.unbind("<Button-1>")
+            self.btnEliminar.configure(state="disabled")
+            self.btnEliminar.unbind("<Button-1>")
+            self.btnGuardar.configure(state="disabled")
+            self.btnGuardar.unbind("<Button-1>")
+            estilo = ttk.Style()
+            estilo.map("Boton.TButton", foreground=[("active", "black")])
+            estilo.configure("Boton.TButton", foreground="red")
+            self.btnEditar.configure(text="Confirmar", style="Boton.TButton")
+            self.btnEditar.unbind("<Button-1>")
+            self.btnEditar.bind("<Button-1>", self.confirmar_Editar)
+        else:
+            mssg.showerror("Error", "Seleccione un curso")
+
+    def confirmar_Editar(self, event):
+        id_Alumno = self.cmbx_Id_Alumno.get()
+        nuevo_codigo_curso = self.cmbx_Id_Curso.get()
+        nuevo_horario = self.horario.get()
+        numero_De_inscripcion = self.cmbx_Num_Inscripcion.get()
+        desc_Curso_Nuevo = self.descripc_Curso.get()
+        fecha_Nueva = self.fecha.get()
+        query1 = "UPDATE Inscritos SET Codigo_Curso = ?, Horario = ?, Fecha_Inscripcion = ? WHERE No_Inscripcion = ? AND Codigo_Curso = ? AND Horario = ?"
+        parametros1 = (nuevo_codigo_curso, nuevo_horario, fecha_Nueva,numero_De_inscripcion, self.curso_Actual, self.horario_Actual)
+        if self.verificar_No_Primary_Keys_Repetidas(id_Alumno, nuevo_codigo_curso, numero_De_inscripcion):
+            mssg.showerror("Error", f"El alumno identificado con código {id_Alumno} ya se encuentra inscrito en el curso con código {nuevo_codigo_curso} para la inscripción No. {numero_De_inscripcion}")
+        else:
+            try:
+                self.run_Query(query1, parametros1)
+                mssg.showinfo("Estado", f"La modificacion del curso {self.desc_Curso_Actual} por el curso {desc_Curso_Nuevo} ha sido realizada con exito")
+            except Exception as e:
+                mssg.showerror("Error", e)
+            self.btnEditar.configure(text="Editar", style="TButton")
+            self.btnEditar.unbind("<Button-1>")
+            self.btnEditar.bind("<Button-1>", self.editar_Curso)
+            self.btnBuscar.configure(state="normal")
+            self.btnBuscar.bind("<Button-1>", self.mostrar_Datos)
+            self.btnGuardar.configure(state="normal")
+            self.btnGuardar.bind("<Button-1>", self.guardar_Inscripcion)
+            self.btnEliminar.configure(state="normal")
+            self.btnEliminar.bind("<Button-1>", self.crear_Ventana_Eliminar)
+            self.mostrar_Datos()
+
     ## Funcionalidad para el botón "Cancelar"
 
     ### Función para cancelar: Limpia los campos del GUI
@@ -729,7 +728,11 @@ class Inscripciones:
 
         ## Rehabilitar el botón "btnEditar"
         self.btnEditar.configure(state="normal")
-        #self.btnEditar.bind("<Button-1>", self.)
+        self.btnEditar.configure(text="Editar")
+        self.btnEditar.unbind("<Button-1>")
+        self.btnEditar.bind("<Button-1>", self.editar_Curso)
+        self.btnEditar.configure(text="Editar", style="TButton")
+
 
         ## Rehabilitar el botón "btnEliminar"
         self.btnEliminar.configure(state="normal")
@@ -745,6 +748,4 @@ class Inscripciones:
 # Ejecución del programa
 if __name__ == "__main__":
     app = Inscripciones()
-    app.verificar_No_Dos_Alumnos_Misma_Inscripcion("A005", 36)
-    app.verificar_No_Dos_Alumnos_Misma_Inscripcion("A002", 1)
     app.run()
