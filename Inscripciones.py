@@ -528,6 +528,8 @@ class Inscripciones:
             self.descripc_Curso.configure(state="normal")
             self.horario.configure(state="normal")
             self.descripc_Curso.delete(0, "end")
+            self.cmbx_Id_Curso.configure(state="readonly")
+            self.descripc_Curso.configure(state="disabled")
         else:
             mssg.showerror("Advertencia", f"No se encuentra ninguna inscripción con el No. de inscripción: {self.cmbx_Num_Inscripcion.get()}")
 
@@ -646,6 +648,7 @@ class Inscripciones:
     
     def editar_Curso(self, event):
         if self.treeInscritos.selection():
+            self.cmbx_Id_Curso.configure(state="normal")
             seleccion = self.treeInscritos.selection()[0]
             seleccion_Values = self.treeInscritos.item(seleccion, "values")
             self.curso_Actual = seleccion_Values[0]
@@ -671,6 +674,7 @@ class Inscripciones:
             self.btnEditar.configure(text="Confirmar", style="Boton.TButton")
             self.btnEditar.unbind("<Button-1>")
             self.btnEditar.bind("<Button-1>", self.confirmar_Editar)
+            self.cmbx_Id_Curso.configure(state="readonly")
         else:
             mssg.showerror("Error", "Seleccione un curso")
 
@@ -709,7 +713,7 @@ class Inscripciones:
         # 1. Limpieza de los campos 
 
         ## Se limpia el campo "cmbx_Id_Alumno"
-        self.cmbx_Id_Alumno.configure(state="normal")
+        self.cmbx_Id_Alumno.configure(state="readonly")
         self.cmbx_Id_Alumno.delete(0, "end")
 
         ## Se limpia el campo "fecha"
@@ -717,19 +721,19 @@ class Inscripciones:
         self.fecha.delete(0, "end")
 
         ## Se limpia el campo "nombres"
-        self.nombres.configure(state="normal")
+        self.nombres.configure(state="disabled")
         self.nombres.delete(0, "end")
 
         ## Se limpia el campo "apellidos"
-        self.apellidos.configure(state="normal")
+        self.apellidos.configure(state="disabled")
         self.apellidos.delete(0, "end")
 
         ## Se limpia el campo "cmbx_Id_Curso"
-        self.cmbx_Id_Curso.configure(state="normal")
+        self.cmbx_Id_Curso.configure(state="readonly")
         self.cmbx_Id_Curso.delete(0, "end")
 
         ## Se limpia el campo "descripc_Curso"
-        self.descripc_Curso.configure(state="normal")
+        self.descripc_Curso.configure(state="disabled")
         self.descripc_Curso.delete(0, "end")
 
         ## Se limpia el campo "horario"
