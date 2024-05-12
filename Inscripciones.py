@@ -6,17 +6,20 @@ from tkinter import messagebox as mssg
 import sqlite3
 from pathlib import Path
 from datetime import datetime
+from idlelib.tooltip import Hovertip
+
 
 # Directorio del archivo Inscripciones.py
 PATH = str((Path(__file__).resolve()).parent)
 
 # Directorio donde se encuentra el icono
-ICON = r"/img/firefox.ico"
+ICON = r"/img/buho.ico"
 
 # Directorio donde se encuentra la base de datos 
 # DB = r"/db/Inscripciones.db"
 DB = r"/db/Inscripciones_pruebas.db"
 
+RELOJ = r"/img/reloj.png"
 # Clase con la interfaz gráfica del programa
 class Inscripciones:
 
@@ -64,8 +67,19 @@ class Inscripciones:
         self.fecha = ttk.Entry(self.frm_1, name="fecha", validate="key", validatecommand=(self.frm_1.register(self.valida_Fecha_Entrada), "%P"))
         self.fecha.configure(justify="center")
         self.fecha.place(anchor="nw", width=90, x=680, y=80)
-        self.fecha.bind("<KeyRelease>", self.valida_Fecha)
+        self.fecha.bind("<KeyRelease>", self.valida_Formato_Fecha)
+        self.fecha.bind("<KeyRelease>", self.validar_fecha, "+")
         self.fecha.bind("<BackSpace>", lambda _: self.fecha.delete(len(self.fecha.get())), "end")
+
+        #Boton Reloj
+        self.img_Boton=tk.PhotoImage(file=PATH + RELOJ)
+        self.btnReloj = ttk.Button(self.frm_1, name="btnreloj", image=self.img_Boton,compound="center")
+        self.btnReloj.place(width=23, height=23, x=771, y=79)
+        # Ajustar la posición de la imagen dentro del botón utilizando la opción padding
+        self.btnReloj.image = self.img_Boton.subsample(2, 2)  # Reducir el tamaño de la imagen para que quepa en el botón
+        self.btnReloj.config(padding=(-10, -10, -10, -10))
+        self.btnReloj.bind("<Button-1>", self.obtener_Fecha)
+        self.msj_btnReloj = Hovertip(self.btnReloj, text="Presione para obtener la fecha actual", hover_delay=50)
 
         #Label Alumno
         self.lblIdAlumno = ttk.Label(self.frm_1, name="lblidalumno")
@@ -84,7 +98,7 @@ class Inscripciones:
         self.lblNombres.place(anchor="nw", x=20, y=130)
 
         #Entry Nombres
-        self.nombres = ttk.Entry(self.frm_1, name="nombres")
+        self.nombres = ttk.Entry(self.frm_1, name="nombres",state="disabled")
         self.nombres.place(anchor="nw", width=200, x=100, y=130)
 
         #Label Apellidos
@@ -93,7 +107,7 @@ class Inscripciones:
         self.lblApellidos.place(anchor="nw", x=400, y=130)
 
         #Entry Apellidos
-        self.apellidos = ttk.Entry(self.frm_1, name="apellidos")
+        self.apellidos = ttk.Entry(self.frm_1, name="apellidos",state="disabled")
         self.apellidos.place(anchor="nw", width=200, x=485, y=130)
 
         #Label Curso
@@ -132,11 +146,16 @@ class Inscripciones:
 
         ''' Botones  de la Aplicación'''
 
-        # Estilo para los botones 
+        # Estilo para los botones default
         self.botones = ttk.Style()
         self.botones.configure("TButton", foreground = "RoyalBlue")
         self.botones.map("TButton", foreground=[("active", "red2")])
 
+        #Estilo para los botones alterno
+        estilo = ttk.Style()
+        estilo.map("Boton.TButton", foreground=[("active", "black")])
+        estilo.configure("Boton.TButton", foreground="red")
+        
         #Boton Buscar
         self.btnBuscar = ttk.Button(self.frm_1, name="btnbuscar")
         self.btnBuscar.configure(text='Buscar')
@@ -223,8 +242,6 @@ class Inscripciones:
 
     ''' Funcionalidades del programa'''
 
-    # Funciones de centrado 
-
     ## Centrado de la pantalla
     def centrar_Pantalla(self, pantalla, ancho, alto):
         """ Centra las ventanas del programa """
@@ -238,12 +255,20 @@ class Inscripciones:
     # Funciones de validación 
 
     ## Función de validación del formato de la fecha
-    
+    def obtener_Fecha(self,event = None):
+        ''' Obtiene la fecha actual y la inserta en el campo de fecha '''
+        self.fecha.delete(0, "end")
+        ahora = datetime.now().strftime("%d%m%Y")
+        for d in ahora:
+            self.fecha.insert("end", d)
+            self.valida_Formato_Fecha()
+
+
     def valida_Fecha_Entrada(self, text):
         ''' Configuracion para que el usuario no pueda introducir letras en el campo Fecha '''
         return all(char.isdigit() or char == "/" for char in text)
     
-    def valida_Fecha(self, event = None):  
+    def valida_Formato_Fecha(self, event = None):  
         ''' Configura  el formato correcto en el campo Fecha dd/mm/aaaa '''
         fecha = self.fecha.get()
 
@@ -254,15 +279,49 @@ class Inscripciones:
             self.fecha.delete(10, "end")
 
     ## Función que valida la fecha
-    def fecha_Valida(self):
-        try:
-            dia, mes, ano = map(int, self.fecha.get().split("/"))
-            datetime(ano, mes, dia)
-            return True
-        except ValueError: 
-            mssg.showerror("La fecha ingresada no es una fecha válida. Por favor corregir a una fecha valida.")
+    def validacion_Dias_Mes_Año(self, d, m, a):
+        #siempre va a retornar false si algo en la fecha no es valido
+        if a <= 1754:   # Verifica si el año es válido (superior a 1754)
+            mssg.showerror("Error","Solo es permitido un año superior a 1754")  
+            return False  
+        if not (1 <= m <= 12):  # Verifica si el mes está dentro del rango válido (1 a 12)
+            mssg.showerror("Error","Solo es permitido un mes entre 1 y 12")
             return False
-        
+        if m in (1, 3, 5, 7, 8, 10, 12):     # Verifica los meses que tienen 31 días
+            if not (1 <= d <= 31):  # Verifica si el día está dentro del rango válido para estos meses (1 a 31)
+                mssg.showerror("Error",f"Solo es permitido un día entre 1 y 31 para el mes {m}")
+                return False
+        elif m == 2: # Verifica si el mes es febrero
+            biciesto = a % 4 == 0 and (a % 100 != 0 or a % 400 == 0) # Calcula si el año es bisiesto
+            if biciesto:  # Si el año es bisiesto
+                if not (1 <= d <= 29): # Verifica si el día está dentro del rango válido para febrero en un año bisiesto (1 a 29)
+                    mssg.showerror("Error",f"Solo es permitido un día entre 1 y 29 para el mes {m} de un año bisiesto")
+                    return False
+            else:  # Si el año no es bisiesto
+                if not (1 <= d <= 28): # Verifica si el día está dentro del rango válido para febrero en un año no bisiesto (1 a 28)
+                    mssg.showerror("Error",f"Solo es permitido un día entre 1 y 28 para el mes {m} de un año no bisiesto")
+                    return False
+        else: # Para los meses restantes (30 días)
+            if not (1 <= d <= 30): # Verifica si el día está dentro del rango válido para estos meses (1 a 30)
+                mssg.showerror("Error",f"Solo es permitido un día entre 1 y 30 para el mes {m}")
+                return False
+        return True # Retorna True indicando que la fecha es válida
+    
+    def validar_fecha(self, event = None):
+    # Obtener la fecha
+        fecha = self.fecha.get()
+
+        if len(fecha) == 10:
+        # Dividir la fecha en día, mes y año
+            dia, mes, año = map(int, fecha.split('/'))
+
+            # Llamar a la función validacion_Dias_Mes_Año con los componentes de fecha
+            if not self.validacion_Dias_Mes_Año(dia, mes, año):
+                self.fecha.delete(0, "end")
+            else:
+                pass
+        else:
+            pass
     # Funciones de interacción con la base de datos 
 
     def run_Query(self,query,parameters=(), op_Busqueda=0):
@@ -404,8 +463,8 @@ class Inscripciones:
         result = self.run_Query(query, (id_Alumno, no_Inscripcion), 1)
         # Verifica si el query arroja un resultado "None" o no
         if result is not None:
-            confirmacion = mssg.askokcancel("Confirmacion", f"¿Desea inscribir el alumno {id_Alumno} en su registro perteneciente a la inscripción {result[0]}?")
-            if confirmacion:
+            confirmacion = mssg.askquestion("Confirmacion", f"¿Desea inscribir el alumno {id_Alumno} en su registro perteneciente a la inscripción {result[0]}?")
+            if confirmacion == "yes":
                 self.limpiar_Campos()
                 for i, curso in enumerate(self.cmbx_Num_Inscripcion["values"]):
                     if result[0] == int(curso):
@@ -482,24 +541,24 @@ class Inscripciones:
                                 parameters2 = (self.autoincrementar_Contador, )
                                 self.run_Query(query2, parameters2)
                     
-                    # Mensaje que confirma que la inscripción se ha realizado con éxito
-                    mssg.showinfo("Exito", "Inscripcion realizada con exito")
-                    self.mostrar_Datos()
-                    
-                    # Configura los campos luego de realizar una inscripción con éxito 
-                    
-                    ## 
-                    self.cmbx_Num_Inscripcion.set(no_Inscripcion)
+                        # Mensaje que confirma que la inscripción se ha realizado con éxito
+                        mssg.showinfo("Exito", "Inscripcion realizada con exito")
+                        self.mostrar_Datos()
+                        
+                        # Configura los campos luego de realizar una inscripción con éxito 
+                        
+                        ## 
+                        self.cmbx_Num_Inscripcion.set(no_Inscripcion)
 
-                    ## 
-                    self.cmbx_Id_Curso.configure(state="normal")
-                    self.cmbx_Id_Curso.delete(0, "end")
+                        ## 
+                        self.cmbx_Id_Curso.configure(state="normal")
+                        self.cmbx_Id_Curso.delete(0, "end")
 
-                    self.descripc_Curso.configure(state="normal")
-                    self.descripc_Curso.delete(0, "end")
+                        self.descripc_Curso.configure(state="normal")
+                        self.descripc_Curso.delete(0, "end")
 
-                    self.horario.configure(state="normal")
-                    self.horario.delete(0, "end")
+                        self.horario.configure(state="normal")
+                        self.horario.delete(0, "end")
                     
     
     # 
@@ -651,6 +710,7 @@ class Inscripciones:
             self.cmbx_Id_Curso.configure(state="normal")
             seleccion = self.treeInscritos.selection()[0]
             seleccion_Values = self.treeInscritos.item(seleccion, "values")
+            self.descripc_Curso.configure(state="normal")
             self.curso_Actual = seleccion_Values[0]
             self.desc_Curso_Actual = seleccion_Values[1]
             self.horario_Actual = seleccion_Values[2]
@@ -658,6 +718,7 @@ class Inscripciones:
             self.cmbx_Id_Curso.insert(0, self.curso_Actual)
             self.descripc_Curso.delete(0, "end")
             self.descripc_Curso.insert(0, self.desc_Curso_Actual)
+            self.descripc_Curso.configure(state="disabled")
             self.horario.delete(0, "end")
             self.horario.insert(0, self.horario_Actual)
             #Bloquear los botones 
@@ -668,9 +729,6 @@ class Inscripciones:
             self.btnEliminar.unbind("<Button-1>")
             self.btnGuardar.configure(state="disabled")
             self.btnGuardar.unbind("<Button-1>")
-            estilo = ttk.Style()
-            estilo.map("Boton.TButton", foreground=[("active", "black")])
-            estilo.configure("Boton.TButton", foreground="red")
             self.btnEditar.configure(text="Confirmar", style="Boton.TButton")
             self.btnEditar.unbind("<Button-1>")
             self.btnEditar.bind("<Button-1>", self.confirmar_Editar)
@@ -714,31 +772,36 @@ class Inscripciones:
 
         ## Se limpia el campo "cmbx_Id_Alumno"
         self.cmbx_Id_Alumno.configure(state="readonly")
-        self.cmbx_Id_Alumno.delete(0, "end")
+        self.cmbx_Id_Alumno.set("")
 
         ## Se limpia el campo "fecha"
         self.fecha.configure(state="normal")
         self.fecha.delete(0, "end")
 
         ## Se limpia el campo "nombres"
-        self.nombres.configure(state="disabled")
+        self.nombres.configure(state="normal")
         self.nombres.delete(0, "end")
+        self.nombres.configure(state="disabled")
 
         ## Se limpia el campo "apellidos"
-        self.apellidos.configure(state="disabled")
+        self.apellidos.configure(state="normal")
         self.apellidos.delete(0, "end")
+        self.apellidos.configure(state="disabled")
 
         ## Se limpia el campo "cmbx_Id_Curso"
         self.cmbx_Id_Curso.configure(state="readonly")
-        self.cmbx_Id_Curso.delete(0, "end")
+        self.cmbx_Id_Curso.set("")
 
         ## Se limpia el campo "descripc_Curso"
-        self.descripc_Curso.configure(state="disabled")
+        self.descripc_Curso.configure(state="normal")
         self.descripc_Curso.delete(0, "end")
+        self.descripc_Curso.configure(state="disabled")
 
         ## Se limpia el campo "horario"
         self.horario.configure(state="normal")
         self.horario.delete(0, "end")
+        self.horario.configure(state="disabled")
+
 
         ## Se limpia el campo "cmbx_Num_Inscripcion"
         self.cmbx_Num_Inscripcion.configure(state="normal")
@@ -780,5 +843,4 @@ class Inscripciones:
 # Ejecución del programa
 if __name__ == "__main__":
     app = Inscripciones()
-    print(app.cmbx_Num_Inscripcion["values"])
     app.run()
