@@ -73,7 +73,7 @@ class Inscripciones:
         self.lblIdAlumno.place(anchor="nw", x=20, y=80)
 
         #Combobox Alumno
-        self.cmbx_Id_Alumno = ttk.Combobox(self.frm_1, name="cmbx_id_alumno")
+        self.cmbx_Id_Alumno = ttk.Combobox(self.frm_1, name="cmbx_id_alumno", state="readonly")
         self.cmbx_Id_Alumno.place(anchor="nw", width=112, x=100, y=80)
         self.obtener_Alumnos() # Permite obtener la lista de IDs de los alumnos de la tabla Alumnos e introducirla al combobox "cmbx_Id_Alumno"
         self.cmbx_Id_Alumno.bind("<<ComboboxSelected>>", self.escoger_Alumno)    # Asignar al evento de selección del ID del estudiante en el combobox "cmbx_Id_Alumno" la función "escoger_Alumno"
@@ -102,7 +102,7 @@ class Inscripciones:
         self.lblIdCurso.place(anchor="nw", x=20, y=185)
 
         #Entry Curso
-        self.cmbx_Id_Curso = ttk.Combobox(self.frm_1, name="id_curso")
+        self.cmbx_Id_Curso = ttk.Combobox(self.frm_1, name="id_curso", state="readonly")
         self.cmbx_Id_Curso.place(anchor="nw", width=166, x=100, y=185)
         self.obtener_Cursos() # Permite obtener la lista de códigos de los cursos de la tabla Cursos e introducirla al combobox "cmbx_Id_Alumno"
         self.cmbx_Id_Curso.bind("<<ComboboxSelected>>", self.escoger_Curso)    # Asignar al evento de selección del código del curso en el combobox "cmbx_Id_Alumno" la función "escoger_Curso"
@@ -114,7 +114,7 @@ class Inscripciones:
 
         #Entry de Descripción del Curso 
         self.descripc_Curso = ttk.Entry(self.frm_1, name="descripc_curso")
-        self.descripc_Curso.configure(justify="left", width=166)
+        self.descripc_Curso.configure(justify="left", width=166, state="disabled")
         self.descripc_Curso.place(anchor="nw", width=300, x=325, y=185)
 
         #Label Horario
@@ -370,16 +370,19 @@ class Inscripciones:
     ## Funcionalidad para el botón "Guardar"
 
     ### Función auxiliar1: Permite verificar que un alumno no inscriba el mismo curso dos veces en la misma inscripcion
-    def verificar_No_Primary_Keys_Repetidas(self, id_Alumno, codigo_Curso, no_Inscripcion):
-        ''' Verifica que un alumno no inscriba el mismo curso dos veces en la misma inscripcion '''
-        query = "SELECT * FROM Inscritos WHERE Id_Alumno = ? AND Codigo_Curso = ? AND No_Inscripcion = ?"
-        result = self.run_Query(query, (id_Alumno, codigo_Curso, no_Inscripcion), 1) # El query debe traer un registro único para las 3 primary keys: "No_Inscripcion", "Id_Alumno" y "Codigo_Curso"
+    def verificar_Integridad_Cursos(self, id_Alumno, nombre_Curso, id_Curso, no_Inscripcion):
+        ''' Verifica que un alumno no inscriba el mismo curso dos veces en la misma inscripción '''
+        query = "SELECT Codigo_Curso FROM Inscritos WHERE Id_Alumno = ? AND No_Inscripcion = ?"
+        result = self.run_Query(query, (id_Alumno, no_Inscripcion), 2) #trae los codigos del curso en los que esta incrito el alumno
+        id_Cursos_Del_Alumno = [resultado[0] for resultado in result] #convierte la tupla en una lista de solo IDS de curso
+        nombres_cursos = []
+        for codigo_Curso in id_Cursos_Del_Alumno: #recorre la lista de IDs de curso y convierte en nombres de curso
+            query2 = "SELECT Descrip_Curso FROM Cursos WHERE Codigo_Curso = ?"
+            result2 = self.run_Query(query2, (codigo_Curso,), 1)
+            if result2 and result2[0] == nombre_Curso:
+                nombres_cursos.append(result2[0]) #va añadiedno a la lista de nombres de cursos los nombres de los cursos que estan en la lista de IDs de cursos
+        return id_Curso in id_Cursos_Del_Alumno or nombre_Curso in nombres_cursos # verifica si el ID del curso es igual al ID del curso del alumno o si el nombre del curso es igual al nombre del curso del alumno
 
-        # Verifica si el registro con las caracteristicas del query ya se encuentra en la base de datos o no
-        if result != None:
-            return True  # El alumno ya inscribió el curso en esta inscripción
-        else:
-            return False # El alumno no ha inscrito el curso en esta inscripción
         
     ### Función auxiliar2: No permite que dos alumnos diferentes inscriban en la misma inscripción 
     def verificar_No_Dos_Alumnos_Misma_Inscripcion(self, no_Inscripcion, id_Alumno):
@@ -395,7 +398,29 @@ class Inscripciones:
                 return True  # Los dos alumnos son diferentes, lo cuál no es permitido
             else:
                 return False # El alumno es el mismo, y no hay problema con la inscripción
-        
+    
+    def verificar_Registro_Alumno(self, no_Inscripcion, id_Alumno):
+        query = "SELECT No_Inscripcion FROM Inscritos WHERE Id_Alumno = ? AND No_Inscripcion != ?"
+        result = self.run_Query(query, (id_Alumno, no_Inscripcion), 1)
+        # Verifica si el query arroja un resultado "None" o no
+        if result is not None:
+            confirmacion = mssg.askokcancel("Confirmacion", f"¿Desea inscribir el alumno {id_Alumno} en su registro perteneciente a la inscripción {result[0]}?")
+            if confirmacion:
+                self.limpiar_Campos()
+                for i, curso in enumerate(self.cmbx_Num_Inscripcion["values"]):
+                    if result[0] == int(curso):
+                        self.cmbx_Num_Inscripcion.current(i)
+                        self.cmbx_Num_Inscripcion.event_generate("<<ComboboxSelected>>")
+                        #self.cmbx_Num_Inscripcion.set(self.cmbx_Num_Inscripcion["values"][i]) esta puede ser otra opcion pra subir las cosas al combobox
+                        break
+                 # Establece el valor del ComboBox
+                self.mostrar_Datos()
+                return True  # El alumno está inscrito en otro número de inscripción
+            else:
+                self.limpiar_Campos()
+                return True  # El usuario decidió no trasladarse a otra inscripción
+        return False
+
     
     ### Función para guardar un curso: Permite guardar una curso dentro de la inscripción 
     def guardar_Inscripcion(self, event):
@@ -406,6 +431,7 @@ class Inscripciones:
         id_Alumno = self.cmbx_Id_Alumno.get()
         id_Curso = self.cmbx_Id_Curso.get()
         fecha = self.fecha.get()
+        desc_Curso = self.descripc_Curso.get()
 
         # Número de inscripción que se encuentra actualmente en el combobox "no_Inscripcion"
         no_Inscripcion = self.cmbx_Num_Inscripcion.get()
@@ -417,44 +443,48 @@ class Inscripciones:
         if not id_Alumno or not id_Curso or not fecha:
             mssg.showerror("Error", "Por favor, complete todos los campos")
         else:
-            # Verificar que el alumno que está inscribiendo en la inscriçión correspondiente a "no_Inscripcion" es el que corresponde a la inscripción y no un alumnto diferente
-            if self.verificar_No_Dos_Alumnos_Misma_Inscripcion(no_Inscripcion, id_Alumno):
-                mssg.showerror("Error", f"El código del alumno {id_Alumno} no corresponde al código del alumno correspondiente a la inscripción {no_Inscripcion}")
+            if self.verificar_Registro_Alumno(no_Inscripcion, id_Alumno):
+                pass
             else:
-                # Verificar si el alumno ya inscribió el curso en está inscripción (i.e. no puede haber cursos repetidos para un alumno en la misma inscripción)
-                if self.verificar_No_Primary_Keys_Repetidas(id_Alumno, id_Curso, no_Inscripcion):
-                    mssg.showerror("Error", f"El alumno identificado con código {id_Alumno} ya se encuentra inscrito en el curso con código {id_Curso} para la inscripción No. {no_Inscripcion}")
+            # Verificar que el alumno que está inscribiendo en la inscriçión correspondiente a "no_Inscripcion" es el que corresponde a la inscripción y no un alumnto diferente
+                if self.verificar_No_Dos_Alumnos_Misma_Inscripcion(no_Inscripcion, id_Alumno):  
+                    mssg.showerror("Error", f"El código del alumno {id_Alumno} no corresponde al código del alumno correspondiente a la inscripción {no_Inscripcion}")
                 else:
-                    # Query que inserta nueva inscripción en la tabla Inscritos
-                    query = "INSERT INTO Inscritos (No_Inscripcion, Id_Alumno, Codigo_Curso, Fecha_Inscripcion, Horario) VALUES (?, ?, ?, ?, ?)"
-                    parameters = (no_Inscripcion, id_Alumno, id_Curso, fecha, horario_Curso)
-                    self.run_Query(query, parameters)
+                    # Verificar si el alumno ya inscribió el curso en está inscripción (i.e. no puede haber cursos repetidos para un alumno en la misma inscripción)
+                    if self.verificar_Integridad_Cursos(id_Alumno, desc_Curso, id_Curso, no_Inscripcion):
+                        mssg.showerror("Error", f"El alumno identificado con código {id_Alumno} ya se encuentra inscrito en el curso con código {id_Curso} para la inscripción No. {no_Inscripcion}")
+                    else:
+                        # Query que inserta nueva inscripción en la tabla Inscritos
+                        query = "INSERT INTO Inscritos (No_Inscripcion, Id_Alumno, Codigo_Curso, Fecha_Inscripcion, Horario) VALUES (?, ?, ?, ?, ?)"
+                        parameters = (no_Inscripcion, id_Alumno, id_Curso, fecha, horario_Curso)
+                        self.run_Query(query, parameters)
 
-                    # Condicional para verificar si se debe incrementar el contador del autoincrementar
-                    if (int(no_Inscripcion) == int(self.autoincrementar_Contador)):
-                        # Se incrementa el valor del autoincrementar del No. de inscripción
-                        self.autoincrementar_Contador += 1
+                        # Condicional para verificar si se debe incrementar el contador del autoincrementar
+                        if (int(no_Inscripcion) == int(self.autoincrementar_Contador)):
+                            # Se incrementa el valor del autoincrementar del No. de inscripción
+                            self.autoincrementar_Contador += 1
 
-                        # Se ingresa dicho valor del nuevo autoincrementar dentro del combobox "cmbx_Num_Inscripcion"
-                        lista_No_Inscripcion = list(self.cmbx_Num_Inscripcion["values"])
-                        lista_No_Inscripcion.insert(0, self.autoincrementar_Contador)
-                        self.cmbx_Num_Inscripcion["values"] = lista_No_Inscripcion
+                            # Se ingresa dicho valor del nuevo autoincrementar dentro del combobox "cmbx_Num_Inscripcion"
+                            lista_No_Inscripcion = list(self.cmbx_Num_Inscripcion["values"])
+                            lista_No_Inscripcion.insert(0, self.autoincrementar_Contador)
+                            self.cmbx_Num_Inscripcion["values"] = lista_No_Inscripcion
 
-                        # Se actualiza el valor almacenado en la columna "No_Inscripcion_Autoincremental" de la tabla "Autoincremental"
+                            # Se actualiza el valor almacenado en la columna "No_Inscripcion_Autoincremental" de la tabla "Autoincremental"
 
-                        # Si es la primera vez que se guarda una inscripción o registro en la tabla "Inscritos", entonces se crea el registro dentro de la columna "No_Inscripcion_Autoincremental" de la tabla "Autoincremental"
-                        # De lo contrario, se actualiza el valor dentro de la columna "No_Inscripcion_Autoincremental" de la tabla "Autoincremental" al valor que se encuentre almancenado en la variable self.autoincrementar_Contador
-                        if (self.autoincrementar_Contador == 2):
-                            query2 = "INSERT INTO Autoincremental (No_Inscripcion_Autoincremental) VALUES (?)"
-                            parameters2 = (self.autoincrementar_Contador, )
-                            self.run_Query(query2, parameters2)
-                        else:    
-                            query2 = "UPDATE Autoincremental SET No_Inscripcion_Autoincremental = ?"
-                            parameters2 = (self.autoincrementar_Contador, )
-                            self.run_Query(query2, parameters2)
+                            # Si es la primera vez que se guarda una inscripción o registro en la tabla "Inscritos", entonces se crea el registro dentro de la columna "No_Inscripcion_Autoincremental" de la tabla "Autoincremental"
+                            # De lo contrario, se actualiza el valor dentro de la columna "No_Inscripcion_Autoincremental" de la tabla "Autoincremental" al valor que se encuentre almancenado en la variable self.autoincrementar_Contador
+                            if (self.autoincrementar_Contador == 2):
+                                query2 = "INSERT INTO Autoincremental (No_Inscripcion_Autoincremental) VALUES (?)"
+                                parameters2 = (self.autoincrementar_Contador, )
+                                self.run_Query(query2, parameters2)
+                            else:    
+                                query2 = "UPDATE Autoincremental SET No_Inscripcion_Autoincremental = ?"
+                                parameters2 = (self.autoincrementar_Contador, )
+                                self.run_Query(query2, parameters2)
                     
                     # Mensaje que confirma que la inscripción se ha realizado con éxito
                     mssg.showinfo("Exito", "Inscripcion realizada con exito")
+                    self.mostrar_Datos()
                     
                     # Configura los campos luego de realizar una inscripción con éxito 
                     
@@ -653,8 +683,8 @@ class Inscripciones:
         fecha_Nueva = self.fecha.get()
         query1 = "UPDATE Inscritos SET Codigo_Curso = ?, Horario = ?, Fecha_Inscripcion = ? WHERE No_Inscripcion = ? AND Codigo_Curso = ? AND Horario = ?"
         parametros1 = (nuevo_codigo_curso, nuevo_horario, fecha_Nueva,numero_De_inscripcion, self.curso_Actual, self.horario_Actual)
-        if self.verificar_No_Primary_Keys_Repetidas(id_Alumno, nuevo_codigo_curso, numero_De_inscripcion):
-            mssg.showerror("Error", f"El alumno identificado con código {id_Alumno} ya se encuentra inscrito en el curso con código {nuevo_codigo_curso} para la inscripción No. {numero_De_inscripcion}")
+        if self.verificar_Integridad_Cursos(id_Alumno, desc_Curso_Nuevo, nuevo_codigo_curso,  numero_De_inscripcion):
+            mssg.showerror("Error", f"El alumno identificado con código {id_Alumno} ya se encuentra inscrito en el curso {desc_Curso_Nuevo} con código {nuevo_codigo_curso} para la inscripción No. {numero_De_inscripcion}")
         else:
             try:
                 self.run_Query(query1, parametros1)
@@ -671,8 +701,6 @@ class Inscripciones:
             self.btnEliminar.configure(state="normal")
             self.btnEliminar.bind("<Button-1>", self.crear_Ventana_Eliminar)
             self.mostrar_Datos()
-
-    ## Funcionalidad para el botón "Cancelar"
 
     ### Función para cancelar: Limpia los campos del GUI
     def limpiar_Campos(self, event = None):
@@ -724,7 +752,7 @@ class Inscripciones:
 
         ## Rehabilitar el botón "btnGuardar"
         self.btnGuardar.configure(state="normal")
-        #self.btnGuardar.bind("<Button-1>", self.)
+        self.btnGuardar.bind("<Button-1>", self.guardar_Inscripcion)
 
         ## Rehabilitar el botón "btnEditar"
         self.btnEditar.configure(state="normal")
@@ -736,7 +764,7 @@ class Inscripciones:
 
         ## Rehabilitar el botón "btnEliminar"
         self.btnEliminar.configure(state="normal")
-        #self.btnEliminar.bind("<Button-1>", self.)
+        self.btnEliminar.bind("<Button-1>", self.crear_Ventana_Eliminar)
 
         # 4. Añadir al combobox "cmbx_Num_Inscripcion" el valor de la siguiente inscripción disponible
         
@@ -748,4 +776,5 @@ class Inscripciones:
 # Ejecución del programa
 if __name__ == "__main__":
     app = Inscripciones()
+    print(app.cmbx_Num_Inscripcion["values"])
     app.run()
