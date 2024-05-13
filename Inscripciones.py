@@ -511,7 +511,7 @@ class Inscripciones:
                 else:
                     # Verificar si el alumno ya inscribió el curso en está inscripción (i.e. no puede haber cursos repetidos para un alumno en la misma inscripción)
                     if self.verificar_Integridad_Cursos(id_Alumno, desc_Curso, id_Curso, no_Inscripcion):
-                        mssg.showerror("Error", f"El alumno identificado con código {id_Alumno} ya se encuentra inscrito en el curso con código {id_Curso} para la inscripción No. {no_Inscripcion}")
+                        mssg.showerror("Error", f"El alumno identificado con código {id_Alumno} ya se encuentra inscrito en el curso con nombre {desc_Curso} para la inscripción No. {no_Inscripcion}")
                     else:
                         # Query que inserta nueva inscripción en la tabla Inscritos
                         query = "INSERT INTO Inscritos (No_Inscripcion, Id_Alumno, Codigo_Curso, Fecha_Inscripcion, Horario) VALUES (?, ?, ?, ?, ?)"
@@ -746,7 +746,7 @@ class Inscripciones:
         query1 = "UPDATE Inscritos SET Codigo_Curso = ?, Horario = ?, Fecha_Inscripcion = ? WHERE No_Inscripcion = ? AND Codigo_Curso = ? AND Horario = ?"
         parametros1 = (nuevo_codigo_curso, nuevo_horario, fecha_Nueva,numero_De_inscripcion, self.curso_Actual, self.horario_Actual)
         if self.verificar_Integridad_Cursos(id_Alumno, desc_Curso_Nuevo, nuevo_codigo_curso,  numero_De_inscripcion):
-            mssg.showerror("Error", f"El alumno identificado con código {id_Alumno} ya se encuentra inscrito en el curso {desc_Curso_Nuevo} con código {nuevo_codigo_curso} para la inscripción No. {numero_De_inscripcion}")
+            mssg.showerror("Error", f"El alumno identificado con código {id_Alumno} ya se encuentra inscrito en el curso {desc_Curso_Nuevo} para la inscripción No. {numero_De_inscripcion}")
         else:
             try:
                 self.run_Query(query1, parametros1)
