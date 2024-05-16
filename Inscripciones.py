@@ -560,8 +560,9 @@ class Inscripciones:
                         self.horario.configure(state="normal")
                         self.horario.delete(0, "end")
                     
+    ## Funcionalidad para el botón "Buscar"
     
-    # 
+    ### Función para mostrar datos en el Treeview: Permite mostrar los datos en el Treeview de la interfaz gráfica
     def mostrar_Datos(self, event = None):
         '''  '''
         no_Inscripcion = (self.cmbx_Num_Inscripcion.get(),)
@@ -591,6 +592,8 @@ class Inscripciones:
             self.descripc_Curso.configure(state="disabled")
         else:
             mssg.showerror("Advertencia", f"No se encuentra ninguna inscripción con el No. de inscripción: {self.cmbx_Num_Inscripcion.get()}")
+
+    ## Funcionalidad para el botón "Eliminar"
 
     ### Función para crear ventana emergente que pregunta si se debe eliminar un curso o toda la inscripción
     def crear_Ventana_Eliminar(self, event):
@@ -705,6 +708,9 @@ class Inscripciones:
         else:
            mssg.showerror("Error", "Seleccione una opcion")
     
+    ## Funcionalidad para el botón "Editar"
+
+    ### Función que se ejecuta cuando se oprime el botón editar: Subir los datos del Treeview al entry e inhabilita los botones guardar, buscar. Habilita el botón "confirmar" y siguen habilitando el botón cancelar
     def editar_Curso(self, event):
         if self.treeInscritos.selection():
             self.cmbx_Id_Curso.configure(state="normal")
@@ -736,6 +742,7 @@ class Inscripciones:
         else:
             mssg.showerror("Error", "Seleccione un curso")
 
+    ### Función que se ejecuta cuando se oprime el botón confirmar: Hacer el cambio del curso en la base de datos y en el Treeview
     def confirmar_Editar(self, event):
         id_Alumno = self.cmbx_Id_Alumno.get()
         nuevo_codigo_curso = self.cmbx_Id_Curso.get()
@@ -764,7 +771,9 @@ class Inscripciones:
             self.btnEliminar.bind("<Button-1>", self.crear_Ventana_Eliminar)
             self.mostrar_Datos()
 
-    ### Función para cancelar: Limpia los campos del GUI
+    ## Funcionalidad para el botón "Cancelar"
+
+    ### Función para cancelar: Limpia los campos de la interfaz gráfica
     def limpiar_Campos(self, event = None):
         ''' Limpia todos los campos del frm1 '''
 
