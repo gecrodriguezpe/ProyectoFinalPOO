@@ -20,6 +20,7 @@ ICON = r"/img/buho.ico"
 DB = r"/db/Inscripciones_pruebas.db"
 
 RELOJ = r"/img/reloj.png"
+
 # Clase con la interfaz gráfica del programa
 class Inscripciones:
 
@@ -27,7 +28,7 @@ class Inscripciones:
     def __init__(self, master=None):
 
         # Base de datos que alimenta al programa 
-        self.db_name = PATH + DB # Base de datos
+        self.db_Name = PATH + DB # Base de datos
 
         # Contador que permite almancer el valor del autoincremental que corresponde al siguiente número de inscripción 
         self.autoincrementar_Contador = self.obtener_Autoincrementar_Contador() 
@@ -324,12 +325,12 @@ class Inscripciones:
             pass
     # Funciones de interacción con la base de datos 
 
-    def run_Query(self,query,parameters=(), op_Busqueda=0):
+    def run_Query(self, query, parameters=(), op_Busqueda=0):
         ''' Realizar Queries a la base de datos de SQLite '''
         try:
-            with sqlite3.connect(self.db_name) as conn:
+            with sqlite3.connect(self.db_Name) as conn:
                 self.cur = conn.cursor()
-                self.cur.execute(query,parameters)
+                self.cur.execute(query, parameters)
                 if op_Busqueda == 1:
                     return self.cur.fetchone()
                 elif op_Busqueda == 2:
@@ -565,24 +566,32 @@ class Inscripciones:
     ### Función para mostrar datos en el Treeview: Permite mostrar los datos en el Treeview de la interfaz gráfica
     def mostrar_Datos(self, event = None):
         '''  '''
-        no_Inscripcion = (self.cmbx_Num_Inscripcion.get(),)
-        #print(no_Inscripcion)
+        no_Inscripcion = self.cmbx_Num_Inscripcion.get()
+
         query = "SELECT Id_Alumno, Codigo_Curso, Horario FROM Inscritos WHERE No_Inscripcion = ?"
-        result = self.run_Query(query, no_Inscripcion, 2)
-        #print(result)
+        result = self.run_Query(query, (no_Inscripcion,), 2)
+    
         if result:
+            # Para limpiar el Treeview
             self.treeInscritos.delete(*self.treeInscritos.get_children())
-            for datosDB in result:          
-                codigo_Curso = (datosDB[1],)
+
+            # Llenar el Treeview de cada dato que trajo el result
+            for datos_DB in result:          
+                codigo_Curso = (datos_DB[1],)
                 query2 = "SELECT Descrip_Curso FROM Cursos WHERE Codigo_Curso = ?"
                 result2 = self.run_Query(query2, codigo_Curso, 1)
-                #print(result2)
-                self.treeInscritos.insert("", 0, text= datosDB[0], values = (datosDB[1], result2[0],datosDB[2]))   
+                self.treeInscritos.insert("", 0, text= datos_DB[0], values = (datos_DB[1], result2[0], datos_DB[2]))   
+            
+            # Llnear el Combobox "cmbx_Id_Alumno"
             self.cmbx_Id_Alumno.configure(state= "normal")
             self.cmbx_Id_Alumno.delete(0, "end")
-            self.cmbx_Id_Alumno.insert(0, datosDB[0])
+            self.cmbx_Id_Alumno.insert(0, datos_DB[0])
             self.cmbx_Id_Alumno.configure(state= "disabled")
+
+            # Llenar los nombres y apellidos de los alumnos
             self.escoger_Alumno()
+
+            # 
             self.cmbx_Id_Curso.configure(state="normal")
             self.cmbx_Id_Curso.delete(0, "end")
             self.descripc_Curso.configure(state="normal")
