@@ -12,14 +12,16 @@ from idlelib.tooltip import Hovertip
 # Directorio del archivo Inscripciones.py
 PATH = str((Path(__file__).resolve()).parent)
 
-# Directorio donde se encuentra el icono
+# Directorio donde se encuentra el icono principal del programa
 ICON = r"/img/buho.ico"
+
+# Directorio donde se encuentra el reloj
+RELOJ = r"/img/reloj.png"
 
 # Directorio donde se encuentra la base de datos 
 # DB = r"/db/Inscripciones.db"
 DB = r"/db/Inscripciones_pruebas.db"
 
-RELOJ = r"/img/reloj.png"
 
 # Clase con la interfaz gráfica del programa
 class Inscripciones:
@@ -33,6 +35,8 @@ class Inscripciones:
         # Contador que permite almancer el valor del autoincremental que corresponde al siguiente número de inscripción 
         self.autoincrementar_Contador = self.obtener_Autoincrementar_Contador() 
 
+        ''' Ventana principal del programa '''
+
         # Ventana principal del programa
         ancho_Win = 800;  alto_Win = 600 # Dimensiones de la ventana principal
         self.win = tk.Tk(master) # Ventana principal
@@ -43,7 +47,9 @@ class Inscripciones:
         self.win.iconbitmap(PATH + ICON) # Icono de la ventana 
         self.win.title("Inscripciones de Materias y Cursos") # Título de la ventana
 
-        # Crea los frames
+        ''' Widgets: Elementos de la Ventana principal del programa '''
+
+        # Creación del frame del programa
         self.frm_1 = tk.Frame(self.win, name="frm_1")
         self.frm_1.configure(background="#f7f9fd", height=600, width=800)
         
@@ -57,7 +63,7 @@ class Inscripciones:
         #Combobox No. Inscripción
         self.cmbx_Num_Inscripcion = ttk.Combobox(self.frm_1, name="cmbx_Num_Inscripcion", state="readonly")
         self.cmbx_Num_Inscripcion.place(anchor="nw", width=100, x=682, y=42)
-        self.obtener_Inscripciones() # Permite obtener la lista de los números inscripción e introducirla al combobox "cmbx_Num_Inscripcion". Adicionalmente, realiza el proceso de autoincrementación del mencionado combobox
+        self.obtener_Inscripciones() # Permite obtener la lista de los números inscripción e introducirla al combobox "cmbx_Num_Inscripcion".
 
         #Label Fecha
         self.lblFecha = ttk.Label(self.frm_1, name="lblfecha")
@@ -65,7 +71,7 @@ class Inscripciones:
         self.lblFecha.place(anchor="nw", x=630, y=80)
 
         #Entry Fecha
-        self.fecha = ttk.Entry(self.frm_1, name="fecha", validate="key", validatecommand=(self.frm_1.register(self.valida_Fecha_Entrada), "%P"))
+        self.fecha = ttk.Entry(self.frm_1, name="fecha", validate="key", validatecommand=(self.frm_1.register(self.valida_Fecha_Entrada), "%P")) # Solo permite ingresar digitos o "/" en el try "fecha"
         self.fecha.configure(justify="center")
         self.fecha.place(anchor="nw", width=90, x=680, y=80)
         self.fecha.bind("<KeyRelease>", self.valida_Formato_Fecha)
@@ -76,6 +82,7 @@ class Inscripciones:
         self.img_Boton=tk.PhotoImage(file=PATH + RELOJ)
         self.btnReloj = ttk.Button(self.frm_1, name="btnreloj", image=self.img_Boton,compound="center")
         self.btnReloj.place(width=23, height=23, x=771, y=79)
+        
         # Ajustar la posición de la imagen dentro del botón utilizando la opción padding
         self.btnReloj.image = self.img_Boton.subsample(2, 2)  # Reducir el tamaño de la imagen para que quepa en el botón
         self.btnReloj.config(padding=(-10, -10, -10, -10))
@@ -145,7 +152,7 @@ class Inscripciones:
         self.horario.configure(justify="left", width=166)
         self.horario.place(anchor="nw", width=100, x=680, y=185)
 
-        ''' Botones  de la Aplicación'''
+        ''' Botones de la Aplicación '''
 
         # Estilo para los botones default
         self.botones = ttk.Style()
@@ -192,7 +199,7 @@ class Inscripciones:
         separator1.configure(orient="horizontal")
         separator1.place(anchor="nw", width=796, x=2, y=245)
 
-        ''' Treeview de la Aplicación'''    
+        ''' Treeview de la Aplicación '''    
 
         # Estilo para el Treeview
         self.style = ttk.Style()
@@ -203,7 +210,6 @@ class Inscripciones:
         # Creción del Treeview
         self.treeInscritos = ttk.Treeview(self.frm_1, name="treeInscritos", style = "estilo.Treeview")
         self.treeInscritos.configure(selectmode="browse")
-
         
         #Columnas del Treeview
         self.treeInscritos_cols = ['tV_curso','tV_descripción','tV_horario']
@@ -213,10 +219,6 @@ class Inscripciones:
         self.treeInscritos.column("tV_horario",anchor="w",stretch=True,width=55,minwidth=25)
         self.treeInscritos.column("tV_descripción",anchor="w",stretch=True,width=200,minwidth=50)
         self.treeInscritos.column("tV_curso",anchor="w",stretch=True,width=100,minwidth=50)
-
-        #
-        # Toco desactivar este binding porque el <<TreeviewSelect>> estaba generando problemas
-        # self.treeInscritos.bind("<<TreeviewSelect>>", self.seleccionar_Item)
         
         #Cabeceras
         self.treeInscritos.heading("#0", anchor="w", text='Id Alumno')
@@ -235,13 +237,30 @@ class Inscripciones:
         self.frm_1.pack(side="top")
         self.frm_1.pack_propagate(0)
 
-        # Main widget
+        # Widget (ventana) principal
         self.mainwindow = self.win
 
+    # Función que permite que la interfaz gráfica permanezca activa y funcional mientras no se cierra ésta. 
     def run(self):
+        """
+        Ejecuta el bucle principal de la aplicación.
+
+        Esta función inicia el bucle principal de la aplicación, que escucha y
+        procesa eventos como la entrada del usuario y eventos de ventana. Se llama
+        normalmente después de inicializar la aplicación y configurar todos los
+        componentes necesarios.
+
+        Permite la interacción continua con el usuario mientras la ventana principal esté activa.
+
+        Parámetros:
+            self (object): La instancia de la clase.
+
+        Retorna:
+            None
+        """        
         self.mainwindow.mainloop()
 
-    ''' Funcionalidades del programa '''
+    ''' Función de centrado de la pantalla '''
 
     ## Centrado de la pantalla
     def centrar_Pantalla(self, pantalla, ancho, alto):
@@ -257,13 +276,17 @@ class Inscripciones:
             None
         """
 
+        # Argumentos para posicionar la pantalla
         x = (pantalla.winfo_screenwidth() // 2) - (ancho // 2)
         y = (pantalla.winfo_screenheight() // 2) - (alto // 2)
 
+        # Posicionar la pantalla: ({ancho}x{alto} determina las dimensiones de la pantalla y {x}+{y-30} determina la posición de la pantalla)
         pantalla.geometry(f"{ancho}x{alto}+{x}+{y-30}")
+
+        # Hacer la pantalla visible
         pantalla.deiconify()
 
-    # Funciones de validación 
+    ''' Funciones de validación de la fecha '''
 
     ## Función de validación del formato de la fecha
     def obtener_Fecha(self,event = None):
@@ -284,7 +307,7 @@ class Inscripciones:
             self.fecha.insert("end", d)
             self.valida_Formato_Fecha()
 
-
+# Función que valida que dentro del Entry "fecha" solo se puedan insertar dígitos o barras diagonales
     def valida_Fecha_Entrada(self, text):
         """
         Valida la entrada de texto para asegurarse de que solo contenga dígitos o barras diagonales.
@@ -383,8 +406,7 @@ class Inscripciones:
         else:
             pass
 
-
-    # Funciones de interacción con la base de datos 
+    ''' Función principal de interacción con la base de datos '''
 
     def run_Query(self, query, parameters=(), op_Busqueda=0):
         """
@@ -418,6 +440,9 @@ class Inscripciones:
             print("Error executing query:", e)
             return None
 
+    ''' Funciones para el llenado de campos dentro del programa '''
+
+    # Función para inicializar el contador del autoincremental dentro del programa utilizando la información dentro de la tabla "Autoincremental"
     def obtener_Autoincrementar_Contador(self):
         """
         Recupera el valor almacenado en la columna "No_Inscripcion_Autoincremental" de la tabla "Autoincremental",
@@ -428,14 +453,14 @@ class Inscripciones:
             int: 1 si la tabla está vacía, lo que indica que aún no se ha generado ningún registro o inscripción en la tabla "Inscritos".
         """        
         query = "SELECT No_Inscripcion_Autoincremental FROM Autoincremental"
-        result = self.run_Query(query, (), 1)
+        resultado = self.run_Query(query, (), 1)
 
         # Condicional que determina que acción ejectuar, dependiendo de si la tabla "Autoincremental" está vacía o no
         # Si la tabla está vacía, significa que aún no se ha generado el primer registro o inscripción en la tabla "Inscritos"
-        if result == None: 
+        if resultado == None: 
             return 1
         else:
-            return result[0]
+            return resultado[0]
 
     def obtener_Alumnos(self):
         """
@@ -483,12 +508,14 @@ class Inscripciones:
             self.nombres.configure(state="disabled")
             #self.cmbx_Num_Inscripcion.configure(state="disabled")
 
-    # Nota: Función importante para lo del "autoincrementar" del programa
+    # Función para inicializar el combobox "cmbx_Num_Inscripcion" con los valores que se encuentren en la variable "No_Inscrpcion" de la tabla "Inscritos"
     def obtener_Inscripciones(self):    
         """
         Recupera las inscripciones de la tabla "Inscritos" y las rellena en el combobox "cmbx_Num_Inscripcion".
 
-        Esta función elimina los valores existentes en el combobox "cmbx_Num_Inscripcion" y recupera los números de inscripción distintos de la tabla "Inscritos". Si la tabla no está vacía, la función inserta el siguiente número de inscripción al principio de la lista y lo establece como el valor predeterminado. Si la tabla está vacía, la función establece el valor predeterminado en el siguiente número de inscripción.
+        Esta función elimina los valores existentes en el combobox "cmbx_Num_Inscripcion" y recupera los números de inscripción distintos de la tabla "Inscritos". 
+        Si la tabla no está vacía, la función inserta el siguiente número de inscripción al principio de la lista y lo establece como el valor predeterminado. 
+        Si la tabla está vacía, la función establece el valor predeterminado en el siguiente número de inscripción.
 
         Parámetros:
             self (objeto): La instancia de la clase a la que pertenece el método.
@@ -496,22 +523,41 @@ class Inscripciones:
         Retorna:
             None
         """
+        
+        # Elimina los valores existentes en el combobox "cmbx_Num_Inscripcion"
         self.cmbx_Num_Inscripcion.delete(0, "end")
+
+        # Recupera los números de inscripción distintos de la tabla "Inscritos" ordenados de manera descendiente. 
         query = "SELECT DISTINCT No_Inscripcion FROM Inscritos ORDER BY No_Inscripcion DESC"
-        results = self.run_Query(query, (), 2)
-        if results:
+        resultados = self.run_Query(query, (), 2)
+
+        # Condicional que determina que función ejecutar, dependiendo de si la tabla "Inscritos" está vacía o no
+        if resultados:
             # Caso que ocurre cuándo la tabla "Inscritos" no está vacía
-            ids_Inscripciones = [result[0] for result in results]
+
+            # Crea una lista de los números de inscripción
+            ids_Inscripciones = [result[0] for result in resultados]
+
+            # Inserta el siguiente número de inscripción al principio de la lista y lo establece como el valor predeterminado almacenado en "self.autoincrementar_Contador"
             sig_Num_Inscripcion = self.autoincrementar_Contador
             ids_Inscripciones.insert(0, sig_Num_Inscripcion)
+
+            # Inserta los valores de la lista dentro del combobox "cmbx_Num_Inscripcion"
             self.cmbx_Num_Inscripcion['values'] = ids_Inscripciones
+
+            # 
             id_Predeterminado = sig_Num_Inscripcion
             
         else:
             # Caso que ocurre cuándo la tabla "Inscritos" está vacía
+
+            # Establece el valor predeterminado del combobox "cmbx_Num_Inscripcion" como el valor almacenado en la variable self.autoincrementar_Contador
             id_Predeterminado = self.autoincrementar_Contador
+
+            # Inserta los valores de la variable self.autoincrementar_Contador dentro del combobox "cmbx_Num_Inscripcion"
             self.cmbx_Num_Inscripcion['values'] = [id_Predeterminado]
 
+        # Establece el valor predeterminado del combobox "cmbx_Num_Inscripcion"
         self.cmbx_Num_Inscripcion.set(id_Predeterminado)
     
     def obtener_Cursos(self):
@@ -559,9 +605,9 @@ class Inscripciones:
             #self.horario.configure(state="disabled")
             self.descripc_Curso.configure(state="disabled")
 
-    ## Funcionalidad para el botón "Guardar"
+    ''' Funcionalidad para el botón "Guardar" '''
 
-    ### Función auxiliar1: Permite verificar que un alumno no inscriba el mismo curso dos veces en la misma inscripcion
+    # Función auxiliar1 botón Guardar: Permite verificar que un alumno no inscriba el mismo curso dos veces en la misma inscripcion
     def verificar_Integridad_Cursos(self, id_Alumno, nombre_Curso, id_Curso, no_Inscripcion):
         """
         Verifica que un estudiante no se inscriba en el mismo curso dos veces en la misma inscripción.
@@ -587,7 +633,7 @@ class Inscripciones:
         return id_Curso in id_Cursos_Del_Alumno or nombre_Curso in nombres_cursos # verifica si el ID del curso es igual al ID del curso del alumno o si el nombre del curso es igual al nombre del curso del alumno
 
         
-    ### Función auxiliar2: No permite que dos alumnos diferentes inscriban en la misma inscripción 
+    # Función auxiliar2 botón Guardar: No permite que dos alumnos diferentes inscriban en la misma inscripción 
     def verificar_No_Dos_Alumnos_Misma_Inscripcion(self, no_Inscripcion, id_Alumno):
         """
         Verifica si hay dos estudiantes diferentes inscritos en la misma inscripción.
@@ -610,7 +656,8 @@ class Inscripciones:
                 return True  # Los dos alumnos son diferentes, lo cuál no es permitido
             else:
                 return False # El alumno es el mismo, y no hay problema con la inscripción
-    
+            
+    # Función auxiliar3 botón Guardar: No permite que un determinado alumno pueda tener más de una inscripción
     def verificar_Registro_Alumno(self, no_Inscripcion, id_Alumno):
         """
         Verifica si un estudiante ya está inscrito en otra inscripción.
@@ -644,7 +691,7 @@ class Inscripciones:
         return False
 
     
-    ### Función para guardar un curso: Permite guardar una curso dentro de la inscripción 
+    # Función para guardar un curso: Permite guardar una curso dentro de la inscripción 
     def guardar_Inscripcion(self, event):
         """
         Guarda una inscripción para un curso.
@@ -743,9 +790,9 @@ class Inscripciones:
                         self.horario.configure(state="normal")
                         self.horario.delete(0, "end")
                     
-    ## Funcionalidad para el botón "Buscar"
+    ''' Funcionalidad para el botón "Buscar" '''
     
-    ### Función para mostrar datos en el Treeview: Permite mostrar los datos en el Treeview de la interfaz gráfica
+    # Función para mostrar datos en el Treeview: Permite mostrar los datos en el Treeview de la interfaz gráfica
     def mostrar_Datos(self, event = None):
         """
         Recupera datos de la base de datos basados en el número de inscripción seleccionado y los muestra en el Treeview.
@@ -794,9 +841,9 @@ class Inscripciones:
         else:
             mssg.showerror("Advertencia", f"No se encuentra ninguna inscripción con el No. de inscripción: {self.cmbx_Num_Inscripcion.get()}")
 
-    ## Funcionalidad para el botón "Eliminar"
+    ''' Funcionalidad para el botón "Eliminar" '''
 
-    ### Función para crear ventana emergente que pregunta si se debe eliminar un curso o toda la inscripción
+    # Función para crear ventana emergente que pregunta si se debe eliminar un curso o toda la inscripción
     def crear_Ventana_Eliminar(self, event):
         """
         Crea una nueva ventana para eliminar datos.
@@ -855,7 +902,7 @@ class Inscripciones:
         #self.close_button = tk.Button(self.ventana_Borrar, text="Borrar", command= self.ventana_Borrar.destroy, width=10, height=1)
         #self.close_button.pack(pady=5)
 
-    ### Función para eliminar un curso o toda la inscripción completa
+    # Función para eliminar un curso o toda la inscripción completa
     def eliminar_Cursos(self, event):
         """
         Esta función se utiliza para eliminar un curso o eliminar por completo la inscripción.
@@ -937,9 +984,9 @@ class Inscripciones:
         else:
            mssg.showerror("Error", "Seleccione una opcion")
     
-    ## Funcionalidad para el botón "Editar"
+    ''' Funcionalidad para el botón "Editar" '''
 
-    ### Función que se ejecuta cuando se oprime el botón editar: Subir los datos del Treeview al entry e inhabilita los botones guardar, buscar. Habilita el botón "confirmar" y siguen habilitando el botón cancelar
+    # Función que se ejecuta cuando se oprime el botón editar: Subir los datos del Treeview al entry e inhabilita los botones guardar, buscar. Habilita el botón "confirmar" y siguen habilitando el botón cancelar
     def editar_Curso(self, event):
         """
         Edita el curso seleccionado en el TreeView.
@@ -982,7 +1029,7 @@ class Inscripciones:
         else:
             mssg.showerror("Error", "Seleccione un curso")
 
-    ### Función que se ejecuta cuando se oprime el botón confirmar: Hacer el cambio del curso en la base de datos y en el Treeview
+    # Función que se ejecuta cuando se oprime el botón confirmar: Hacer el cambio del curso en la base de datos y en el Treeview
     def confirmar_Editar(self, event):
         """
         Actualiza la información del curso de un estudiante en la base de datos.
@@ -1029,9 +1076,9 @@ class Inscripciones:
             self.btnEliminar.bind("<Button-1>", self.crear_Ventana_Eliminar)
             self.mostrar_Datos()
 
-    ## Funcionalidad para el botón "Cancelar"
+    ''' Funcionalidad para el botón "Cancelar" '''
 
-    ### Función para cancelar: Limpia los campos de la interfaz gráfica
+    # Función para cancelar: Limpia los campos de la interfaz gráfica
     def limpiar_Campos(self, event = None):
         """
         Limpia todos los campos en la interfaz gráfica y restablece el estado de varios botones y combobox.
