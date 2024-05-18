@@ -71,19 +71,34 @@ class Inscripciones:
         self.lblFecha.place(anchor="nw", x=630, y=80)
 
         #Entry Fecha
-        self.fecha = ttk.Entry(self.frm_1, name="fecha", validate="key", validatecommand=(self.frm_1.register(self.valida_Fecha_Entrada), "%P")) # Solo permite ingresar digitos o "/" en el try "fecha"
+        self.fecha = ttk.Entry(self.frm_1, name="fecha", validate="key", validatecommand=(self.frm_1.register(self.valida_Fecha_Entrada), "%P")) # Solo permite ingresar digitos o "/" en el Entry "fecha"
         self.fecha.configure(justify="center")
         self.fecha.place(anchor="nw", width=90, x=680, y=80)
-        self.fecha.bind("<KeyRelease>", self.valida_Formato_Fecha)
-        self.fecha.bind("<KeyRelease>", self.validar_fecha, "+")
-        self.fecha.bind("<BackSpace>", lambda _: self.fecha.delete(len(self.fecha.get())), "end")
+
+        ## Bindings asociados al input que se va introduciendo en el Entry "fecha"
+        self.fecha.bind("<KeyRelease>", self.valida_Formato_Fecha) # Valida que sea la fecha tenga el formato correcto de "dd/mm/aaaa"
+        self.fecha.bind("<KeyRelease>", self.validar_fecha, "+") # Valida que sea la fecha sea una fecha válida (e.g.verifica que en los años bisiesto, el día 29 de febrero existe)
+        self.fecha.bind("<BackSpace>", self.borrar_Caracter_Fecha) # Para borrar carácteres dentro de la cadena de texto que se encuentre en el Entry "fecha"
+
+        ## Desabilitar movimiento del cursor dentro del Entry "fecha"
+        self.fecha.bind("<Left>", lambda _: "break")
+        self.fecha.bind("<Right>", lambda _: "break")
+        self.fecha.bind("<Home>", lambda _: "break")
+        self.fecha.bind("<End>", lambda _: "break")
+
+        ## Desabilitar la tecla Delete dentro del Entry "fecha"
+        self.fecha.bind("<Delete>", lambda _: "break")
+
+        ## Posicionar el cursor siempre al final del Entry "fecha"
+        self.fecha.bindtags(((str(self.fecha)), "TEntry", "post-click", ".", "all")) #  Agregar la posibilidad de mover el cursor al final del Entry
+        self.fecha.bind_class("post-click", "<Button-1>", self.mover_Cursor_Al_Final) # Mueve el cursor al final del Entry
 
         #Boton Reloj
         self.img_Boton=tk.PhotoImage(file=PATH + RELOJ)
         self.btnReloj = ttk.Button(self.frm_1, name="btnreloj", image=self.img_Boton,compound="center")
         self.btnReloj.place(width=23, height=23, x=771, y=79)
         
-        # Ajustar la posición de la imagen dentro del botón utilizando la opción padding
+        ## Ajustar la posición de la imagen dentro del botón utilizando la opción padding
         self.btnReloj.image = self.img_Boton.subsample(2, 2)  # Reducir el tamaño de la imagen para que quepa en el botón
         self.btnReloj.config(padding=(-10, -10, -10, -10))
         self.btnReloj.bind("<Button-1>", self.obtener_Fecha)
@@ -288,11 +303,25 @@ class Inscripciones:
 
     ''' Funciones de validación de la fecha '''
 
-    ## Función de validación del formato de la fecha
+    # Función auxiliar 1 de validación de fecha: Mueve el cursor al final del Entry `fecha`.
+    def mover_Cursor_Al_Final(self, event):
+        """
+        Mueve el cursor al final del widget de entrada `fecha`.
+
+        Parámetros:
+            event (Event): El evento que activó la función.
+
+        Retorna:
+            None
+        """
+        # Mueve el cursor al final del Entry        
+        self.fecha.icursor(len(self.fecha.get()))
+
+    # Función auxiliar 2 de validación de fecha: Permite obtener la fecha actual o inmediata que se encuentra en el sistema del computador tan pronto se hizo la solicitud de ésta. 
     def obtener_Fecha(self,event = None):
         """
-        Elimina el contenido actual del widget `self.fecha` y inserta la fecha actual en el formato "ddmmyyyy". 
-        Llama al método `self.valida_Formato_Fecha()` después de cada inserción de caracter.
+        Elimina el contenido actual del Entry `self.fecha` e inserta la fecha actual en el formato "dd/mm/yyyy" que se encuentre en el sistema del computador tan pronto se hizo la solicitud de ésta.  
+        Llama al método `self.valida_Formato_Fecha()` después de cada inserción de caracter, para validar que se esté ingresando un carácter correcto. 
 
         Parámetros:
             event (Event): Parámetro opcional de evento.
@@ -301,14 +330,23 @@ class Inscripciones:
             None
         """
 
+        # Borra todo el contenido que se encuentre en el Entry "fecha"    
         self.fecha.delete(0, "end")
-        ahora = datetime.now().strftime("%d%m%Y")
-        for d in ahora:
-            self.fecha.insert("end", d)
+
+        # Utiliza la librería datetime para obtener la fecha actual en formato " %d %m %Y "
+        fecha_Actual = datetime.now().strftime("%d%m%Y")
+        
+        # Itera a través de la cadena de texto "fecha_Actual"
+        for caracter in fecha_Actual:
+            
+            # Inserta cada carácter, uno por uno, de la cadena de texto "fecha_Actual"
+            self.fecha.insert("end", caracter)
+            
+            # Revisa que el formato de fecha que se va insertando cada vez que se agrega un carácter nuevo sea válido
             self.valida_Formato_Fecha()
 
-# Función que valida que dentro del Entry "fecha" solo se puedan insertar dígitos o barras diagonales
-    def valida_Fecha_Entrada(self, text):
+    # Función auxiliar 3: Valida que dentro del Entry "fecha" solo se puedan insertar dígitos o barras diagonales ("/")
+    def valida_Fecha_Entrada(self, texto):
         """
         Valida la entrada de texto para asegurarse de que solo contenga dígitos o barras diagonales.
 
@@ -318,13 +356,17 @@ class Inscripciones:
         Retorna:
             bool: True si el texto de entrada es válido, False en caso contrario.
         """        
-        return all(char.isdigit() or char == "/" for char in text)
+
+        # Verifica que el texto de entrada solo contenga dígitos o barras diagonales
+        return all(char.isdigit() or char == "/" for char in texto)
     
+    # Función auxiliar 4: Configura el formato correcto en el campo Fecha
     def valida_Formato_Fecha(self, event = None):  
         """
-        Configura el formato correcto en el campo Fecha dd/mm/aaaa.
+        Configura el formato correcto en el Entry Fecha dd/mm/aaaa.
 
-        Esta función verifica la longitud de la fecha en el widget de entrada `fecha` y inserta un carácter "/" en la posición adecuada si la longitud es de 2 o 5. Si la longitud es mayor a 10, muestra un mensaje de error y elimina los caracteres desde la posición 10 hasta el final del widget de entrada.
+        Esta función verifica la longitud de la fecha en el Entry `fecha` e inserta un carácter "/" en la posición adecuada si la longitud es de 2 o 5. 
+        Si la longitud es mayor a 10, muestra un mensaje de error y elimina los caracteres desde la posición 10 en adelante.
 
         Parámetros:
             event (Event, opcional): El evento que activó la función. Por defecto es None.
@@ -333,15 +375,17 @@ class Inscripciones:
             None
         """
 
+        # Obtener la cadena de texto que se encuentra en el Entry "fecha"
         fecha = self.fecha.get()
 
-        if len(fecha) in [2,5]:
-            self.fecha.insert(fecha.index(" ") + 1 if " " in fecha else len(fecha), "/")
+        # Verifica la longitud de la fecha y inserta un carácter "/" en la posición adecuada
+        if (len(fecha) in [2, 5]):
+            self.fecha.insert(fecha.index(" ") + 1 if " " in fecha else len(fecha), "/") # En las posiciones 2 y 5, inserta un "/"
         elif len(fecha) > 10: 
-            mssg.showerror("Error","Solo es permitido un máximo de 10 carácteres")
+            mssg.showerror("Error","Solo es permitido un máximo de 10 carácteres") # No permite ingresar más de 10 carácteres en el Entry "Fecha"
             self.fecha.delete(10, "end")
 
-    ## Función que valida la fecha
+    # Función auxiliar 5: Valida que la fecha ingresada sea un día, mes y año valido
     def validacion_Dias_Mes_Año(self, d, m, a):
         """
         Valida el día, mes y año de una fecha dada.
@@ -354,36 +398,46 @@ class Inscripciones:
         Retorna:
             bool: True si la fecha es válida, False de lo contrario.
         """        
-        #siempre va a retornar false si algo en la fecha no es valido
-        if a <= 1754:   # Verifica si el año es válido (superior a 1754)
+        # Retorna False si algo en la fecha no es valido
+
+        ## Verifica si el año es válido (superior a 1754)
+        if a <= 1754:   
             mssg.showerror("Error","Solo es permitido un año superior a 1754")  
             return False  
-        if not (1 <= m <= 12):  # Verifica si el mes está dentro del rango válido (1 a 12)
+        
+        ## Verifica si el mes está dentro del rango válido (1 a 12)
+        if not (1 <= m <= 12):  
             mssg.showerror("Error","Solo es permitido un mes entre 1 y 12")
             return False
-        if m in (1, 3, 5, 7, 8, 10, 12):     # Verifica los meses que tienen 31 días
+        
+        ## Verifica que la información relacionada con cada mes específico sea válida. 
+        if m in (1, 3, 5, 7, 8, 10, 12):     
             if not (1 <= d <= 31):  # Verifica si el día está dentro del rango válido para estos meses (1 a 31)
-                mssg.showerror("Error",f"Solo es permitido un día entre 1 y 31 para el mes {m}")
+                mssg.showerror("Error", f"Solo es permitido un día entre 1 y 31 para el mes {m}")
                 return False
         elif m == 2: # Verifica si el mes es febrero
             biciesto = a % 4 == 0 and (a % 100 != 0 or a % 400 == 0) # Calcula si el año es bisiesto
             if biciesto:  # Si el año es bisiesto
                 if not (1 <= d <= 29): # Verifica si el día está dentro del rango válido para febrero en un año bisiesto (1 a 29)
-                    mssg.showerror("Error",f"Solo es permitido un día entre 1 y 29 para el mes {m} de un año bisiesto")
+                    mssg.showerror("Error", f"Solo es permitido un día entre 1 y 29 para el mes {m} de un año bisiesto")
                     return False
             else:  # Si el año no es bisiesto
                 if not (1 <= d <= 28): # Verifica si el día está dentro del rango válido para febrero en un año no bisiesto (1 a 28)
-                    mssg.showerror("Error",f"Solo es permitido un día entre 1 y 28 para el mes {m} de un año no bisiesto")
+                    mssg.showerror("Error", f"Solo es permitido un día entre 1 y 28 para el mes {m} de un año no bisiesto")
                     return False
         else: # Para los meses restantes (30 días)
             if not (1 <= d <= 30): # Verifica si el día está dentro del rango válido para estos meses (1 a 30)
-                mssg.showerror("Error",f"Solo es permitido un día entre 1 y 30 para el mes {m}")
+                mssg.showerror("Error", f"Solo es permitido un día entre 1 y 30 para el mes {m}")
                 return False
-        return True # Retorna True indicando que la fecha es válida
+        
+        # Si no hay un error en la fecha, entonces se retorna True indicando que la fecha es válida
+        return True 
     
+    # Función auxiliar 6: Emplea la función `validacion_Dias_Mes_Año` para verificar si la fecha ingresada por el usuario es una fecha válida 
     def validar_fecha(self, event = None):
         """
-        Valida la fecha dada dividiéndola en componentes de día, mes y año y llamando a la función `validacion_Dias_Mes_Año` con esos componentes. Si la fecha no está en el formato dd/mm/aaaa o si la fecha es inválida, borra el contenido del widget `fecha`.
+        Valida la fecha dada separándola en componentes de día, mes y año y llamando a la función `validacion_Dias_Mes_Año` con esos componentes. 
+        Si la fecha no está en el formato dd/mm/aaaa o si la fecha es inválida, borra el contenido del Entry `fecha`.
 
         Parámetros:
             event (Event, opcional): El evento que activó la función. Por defecto es None.
@@ -391,23 +445,50 @@ class Inscripciones:
         Retorna:
             None
         """
-        # Obtener la fecha
+        # Obtener la cadena de texto dentro del Entry "fecha"
         fecha = self.fecha.get()
 
+        # Verifica la longitud de la fecha y procede a hacer la validación de si la fecha es una fecha correcta en caso de que la fecha tenga una longitud de 10 carácteres
         if len(fecha) == 10:
+
         # Dividir la fecha en día, mes y año
-            dia, mes, año = map(int, fecha.split('/'))
+            dia, mes, año = map(int, fecha.split('/')) # La función "map" transforma cada uno de los elementos que fuerón separados de la fecha por el split a tipos enteros (int)
 
             # Llamar a la función validacion_Dias_Mes_Año con los componentes de fecha
             if not self.validacion_Dias_Mes_Año(dia, mes, año):
-                self.fecha.delete(0, "end")
+                self.fecha.delete(0, "end") # En caso de que sea una fecha inválida, borra el contenido del Entry "fecha"
             else:
                 pass
         else:
             pass
 
+    # Función auxiliar 7: Permite borrar carácteres dentro de la cadena de texto que se encuentre en el Entry `fecha`
+    def borrar_Caracter_Fecha(self, event = None):
+        """
+        Elimina el último carácter de la cadena de texto que se encuentre en el Entry `self.fecha` si es un dígito o un carácter "/".
+
+        Parámetros:
+            event (Event, opcional): El evento que desencadenó la función. Por defecto es None.
+
+        Retorna:
+            None
+        """        
+        
+        # Obtener la cadena de texto que se encuentra en el Entry "fecha"
+        texto = self.fecha.get()
+
+        # Verifica la longitud de la cadena de texto y procede a borrar el carácter si la longitud es mayor a 0
+        if len(texto) == 0:
+            pass
+        else: 
+            if texto[-1].isdigit():
+                self.fecha.delete(len(self.fecha.get())) # En caso de que el último carácter sea un dígito, borra solo el dígito            
+            elif texto[-1] == "/":
+                self.fecha.delete(len(self.fecha.get())-2, "end") # En caso de que el último carácter sea un "/", borra el "/" y los dígitos que anteceden directamente al carácter "/" 
+
     ''' Función principal de interacción con la base de datos '''
 
+    # Función principal para realizar los querys e interactuar con la base de datos
     def run_Query(self, query, parameters=(), op_Busqueda=0):
         """
         Ejecuta una consulta SQLite y devuelve el resultado.
@@ -1124,7 +1205,6 @@ class Inscripciones:
         self.horario.delete(0, "end")
         self.horario.configure(state="disabled")
 
-
         ## Se limpia el campo "cmbx_Num_Inscripcion"
         self.cmbx_Num_Inscripcion.configure(state="normal")
         self.cmbx_Num_Inscripcion.delete(0, "end")
@@ -1149,7 +1229,6 @@ class Inscripciones:
         self.btnEditar.unbind("<Button-1>")
         self.btnEditar.bind("<Button-1>", self.editar_Curso)
         self.btnEditar.configure(text="Editar", style="TButton")
-
 
         ## Rehabilitar el botón "btnEliminar"
         self.btnEliminar.configure(state="normal")
