@@ -241,11 +241,21 @@ class Inscripciones:
     def run(self):
         self.mainwindow.mainloop()
 
-    ''' Funcionalidades del programa'''
+    ''' Funcionalidades del programa '''
 
     ## Centrado de la pantalla
     def centrar_Pantalla(self, pantalla, ancho, alto):
-        """ Centra las ventanas del programa """
+        """
+        Centra la ventana dada en la pantalla.
+
+        Parámetros:
+            pantalla (tkinter.Tk): La ventana a centrar.
+            ancho (int): El ancho de la ventana.
+            alto (int): La altura de la ventana.
+
+        Retorna:
+            None
+        """
 
         x = (pantalla.winfo_screenwidth() // 2) - (ancho // 2)
         y = (pantalla.winfo_screenheight() // 2) - (alto // 2)
@@ -257,7 +267,17 @@ class Inscripciones:
 
     ## Función de validación del formato de la fecha
     def obtener_Fecha(self,event = None):
-        ''' Obtiene la fecha actual y la inserta en el campo de fecha '''
+        """
+        Elimina el contenido actual del widget `self.fecha` y inserta la fecha actual en el formato "ddmmyyyy". 
+        Llama al método `self.valida_Formato_Fecha()` después de cada inserción de caracter.
+
+        Parámetros:
+            event (Event): Parámetro opcional de evento.
+
+        Retorna:
+            None
+        """
+
         self.fecha.delete(0, "end")
         ahora = datetime.now().strftime("%d%m%Y")
         for d in ahora:
@@ -266,11 +286,30 @@ class Inscripciones:
 
 
     def valida_Fecha_Entrada(self, text):
-        ''' Configuracion para que el usuario no pueda introducir letras en el campo Fecha '''
+        """
+        Valida la entrada de texto para asegurarse de que solo contenga dígitos o barras diagonales.
+
+        Parámetros:
+            text (str): El texto de entrada a validar.
+
+        Retorna:
+            bool: True si el texto de entrada es válido, False en caso contrario.
+        """        
         return all(char.isdigit() or char == "/" for char in text)
     
     def valida_Formato_Fecha(self, event = None):  
-        ''' Configura  el formato correcto en el campo Fecha dd/mm/aaaa '''
+        """
+        Configura el formato correcto en el campo Fecha dd/mm/aaaa.
+
+        Esta función verifica la longitud de la fecha en el widget de entrada `fecha` y inserta un carácter "/" en la posición adecuada si la longitud es de 2 o 5. Si la longitud es mayor a 10, muestra un mensaje de error y elimina los caracteres desde la posición 10 hasta el final del widget de entrada.
+
+        Parámetros:
+            event (Event, opcional): El evento que activó la función. Por defecto es None.
+
+        Retorna:
+            None
+        """
+
         fecha = self.fecha.get()
 
         if len(fecha) in [2,5]:
@@ -281,6 +320,17 @@ class Inscripciones:
 
     ## Función que valida la fecha
     def validacion_Dias_Mes_Año(self, d, m, a):
+        """
+        Valida el día, mes y año de una fecha dada.
+
+        Parámetros:
+            d (int): El día de la fecha.
+            m (int): El mes de la fecha.
+            a (int): El año de la fecha.
+
+        Retorna:
+            bool: True si la fecha es válida, False de lo contrario.
+        """        
         #siempre va a retornar false si algo en la fecha no es valido
         if a <= 1754:   # Verifica si el año es válido (superior a 1754)
             mssg.showerror("Error","Solo es permitido un año superior a 1754")  
@@ -309,7 +359,16 @@ class Inscripciones:
         return True # Retorna True indicando que la fecha es válida
     
     def validar_fecha(self, event = None):
-    # Obtener la fecha
+        """
+        Valida la fecha dada dividiéndola en componentes de día, mes y año y llamando a la función `validacion_Dias_Mes_Año` con esos componentes. Si la fecha no está en el formato dd/mm/aaaa o si la fecha es inválida, borra el contenido del widget `fecha`.
+
+        Parámetros:
+            event (Event, opcional): El evento que activó la función. Por defecto es None.
+
+        Retorna:
+            None
+        """
+        # Obtener la fecha
         fecha = self.fecha.get()
 
         if len(fecha) == 10:
@@ -323,10 +382,28 @@ class Inscripciones:
                 pass
         else:
             pass
+
+
     # Funciones de interacción con la base de datos 
 
     def run_Query(self, query, parameters=(), op_Busqueda=0):
-        ''' Realizar Queries a la base de datos de SQLite '''
+        """
+        Ejecuta una consulta SQLite y devuelve el resultado.
+
+        Parámetros:
+            query (str): La consulta SQL a ejecutar.
+            parameters (tuple, opcional): Los parámetros a enlazar a la consulta. Por defecto es ().
+            op_Busqueda (int, opcional): El tipo de búsqueda a realizar. 1 para fetchone, 2 para fetchall. Por defecto es 0.
+
+        Retorna:
+            El resultado de la consulta. Si op_Busqueda es 1, devuelve una sola fila como una tupla. Si op_Busqueda es 2, devuelve todas las filas como una lista de tuplas. Si op_Busqueda no es 1 ni 2, devuelve None.
+
+        Levanta:
+            sqlite3.Error: Si hay un error al ejecutar la consulta.
+
+        Ejemplo:
+            run_Query("SELECT * FROM table WHERE column = ?", ('value',))
+        """    
         try:
             with sqlite3.connect(self.db_Name) as conn:
                 self.cur = conn.cursor()
@@ -342,7 +419,14 @@ class Inscripciones:
             return None
 
     def obtener_Autoincrementar_Contador(self):
-        ''' Obtener el valor que se encuentra almacenado en la columna "No_Inscripcion_Autoincremental" de la tabla "Autoincremental" que se le va a asignar al contador que llevará el valor del autoincrementar del campo No.Inscripcion '''
+        """
+        Recupera el valor almacenado en la columna "No_Inscripcion_Autoincremental" de la tabla "Autoincremental",
+        que se utilizará como contador para asignar el valor del autoincremento al campo "No.Inscripcion".
+        
+        Retorna:
+            int: El valor recuperado de la columna "No_Inscripcion_Autoincremental" si la tabla no está vacía.
+            int: 1 si la tabla está vacía, lo que indica que aún no se ha generado ningún registro o inscripción en la tabla "Inscritos".
+        """        
         query = "SELECT No_Inscripcion_Autoincremental FROM Autoincremental"
         result = self.run_Query(query, (), 1)
 
@@ -354,7 +438,17 @@ class Inscripciones:
             return result[0]
 
     def obtener_Alumnos(self):
-        ''' Poner los IDs de los alumnos de la tabla "Alumnos" en el combobox "cmbx_Id_Alumno" '''            
+        """
+        Recupera los IDs de los estudiantes distintos de la tabla "Alumnos" y los agrega al combobox "cmbx_Id_Alumno".
+
+        Esta función ejecuta una consulta SQL para seleccionar los IDs de los estudiantes distintos de la tabla "Alumnos". Los resultados se almacenan en la variable "results". Si la variable "results" no está vacía, la función itera sobre cada resultado y extrae el primer elemento (el ID del estudiante) en la lista "ids_alumnos". Finalmente, la lista "ids_alumnos" se asigna como valores del combobox "cmbx_Id_Alumno".
+
+        Parámetros:
+            self (objeto): La instancia de la clase a la que pertenece el método.
+
+        Retorna:
+            None
+        """                  
         query = "SELECT DISTINCT Id_Alumno FROM Alumnos ORDER BY Id_Alumno"
         results = self.run_Query(query, (), 2)
         if results:
@@ -363,7 +457,16 @@ class Inscripciones:
 
     
     def escoger_Alumno(self, event = None):
-        ''' A partir del ID escogido en el combobox "cmbx_Id_Alumno" llena los Entrys "nombres" y "apellidos" '''
+        """
+        Selecciona un estudiante del combobox "cmbx_Id_Alumno" y rellena las entradas "nombres" y "apellidos".
+
+        Parámetros:
+            self (objeto): La instancia de la clase a la que pertenece el método.
+            event (Event, opcional): El evento que desencadenó la función. Por defecto es None.
+
+        Retorna:
+            None
+        """        
         id_Alumno = self.cmbx_Id_Alumno.get()
         query = "SELECT Nombres, Apellidos FROM Alumnos WHERE Id_Alumno = ?"
         result = self.run_Query(query, (id_Alumno,), 1)
@@ -381,8 +484,18 @@ class Inscripciones:
             #self.cmbx_Num_Inscripcion.configure(state="disabled")
 
     # Nota: Función importante para lo del "autoincrementar" del programa
-    def obtener_Inscripciones(self):
-        ''' Poner los números de inscripción de la tabla "Inscritos" en el combobox "cmbx_Num_Inscripcion" '''            
+    def obtener_Inscripciones(self):    
+        """
+        Recupera las inscripciones de la tabla "Inscritos" y las rellena en el combobox "cmbx_Num_Inscripcion".
+
+        Esta función elimina los valores existentes en el combobox "cmbx_Num_Inscripcion" y recupera los números de inscripción distintos de la tabla "Inscritos". Si la tabla no está vacía, la función inserta el siguiente número de inscripción al principio de la lista y lo establece como el valor predeterminado. Si la tabla está vacía, la función establece el valor predeterminado en el siguiente número de inscripción.
+
+        Parámetros:
+            self (objeto): La instancia de la clase a la que pertenece el método.
+
+        Retorna:
+            None
+        """
         self.cmbx_Num_Inscripcion.delete(0, "end")
         query = "SELECT DISTINCT No_Inscripcion FROM Inscritos ORDER BY No_Inscripcion DESC"
         results = self.run_Query(query, (), 2)
@@ -402,7 +515,17 @@ class Inscripciones:
         self.cmbx_Num_Inscripcion.set(id_Predeterminado)
     
     def obtener_Cursos(self):
-        ''' Poner los códigos de los cursos de la tabla "Cursos" en el combobox "cmbx_Id_Curso" '''
+        """
+        Recupera una lista de códigos de curso distintos de la tabla "Cursos" y los rellena en el combobox "cmbx_Id_Curso".
+
+        Esta función ejecuta una consulta SQL para recuperar los códigos de curso distintos de la tabla "Cursos". La consulta ordena los resultados por el código de curso. Si la consulta devuelve algún resultado, la función crea una lista del primer campo de cada fila de resultado. Esta lista se asigna al atributo "values" del combobox "cmbx_Id_Curso".
+
+        Parámetros:
+            self (objeto): La instancia de la clase a la que pertenece este método.
+
+        Retorna:
+            None
+        """
         query = "SELECT DISTINCT Codigo_Curso FROM Cursos ORDER BY Codigo_Curso"
         results = self.run_Query(query, (), 2)
         if results:
@@ -411,7 +534,16 @@ class Inscripciones:
             
     # Corregir la funcionalidad de horario!!! Se puede modificar la funcionalidad, para que actue diferente 
     def escoger_Curso(self, event= None):
-        ''' A partir del código del curso escogido en el combobox "cmbx_Id_Curso" llena los Entrys "descripc_Curso" y "horario" '''
+        """
+        Selecciona un curso desde el combobox "cmbx_Id_Curso" y completa las entradas "descripc_Curso" y "horario" con la descripción y número de horas correspondientes.
+
+        Parámetros:
+            self (objeto): La instancia de la clase a la que pertenece este método.
+            event (Event, opcional): El evento que desencadenó la función. Por defecto es None.
+
+        Retorna:
+            None
+        """
         id_Curso = self.cmbx_Id_Curso.get()  # Corregido de self.num_Curso a self.cmbx_Id_Curso
         query = "SELECT Descrip_Curso, Num_Horas FROM Cursos WHERE Codigo_Curso = ?"
         result = self.run_Query(query, (id_Curso,), 1)
@@ -431,7 +563,18 @@ class Inscripciones:
 
     ### Función auxiliar1: Permite verificar que un alumno no inscriba el mismo curso dos veces en la misma inscripcion
     def verificar_Integridad_Cursos(self, id_Alumno, nombre_Curso, id_Curso, no_Inscripcion):
-        ''' Verifica que un alumno no inscriba el mismo curso dos veces en la misma inscripción '''
+        """
+        Verifica que un estudiante no se inscriba en el mismo curso dos veces en la misma inscripción.
+
+        Parámetros:
+            id_Alumno (int): El ID del estudiante.
+            nombre_Curso (str): El nombre del curso.
+            id_Curso (int): El ID del curso.
+            no_Inscripcion (int): El número de inscripción.
+
+        Retorna:
+            bool: True si el estudiante ya se ha inscrito en el curso o si el nombre del curso coincide con alguno de los cursos inscritos, False de lo contrario.
+        """
         query = "SELECT Codigo_Curso FROM Inscritos WHERE Id_Alumno = ? AND No_Inscripcion = ?"
         result = self.run_Query(query, (id_Alumno, no_Inscripcion), 2) #trae los codigos del curso en los que esta incrito el alumno
         id_Cursos_Del_Alumno = [resultado[0] for resultado in result] #convierte la tupla en una lista de solo IDS de curso
@@ -446,7 +589,16 @@ class Inscripciones:
         
     ### Función auxiliar2: No permite que dos alumnos diferentes inscriban en la misma inscripción 
     def verificar_No_Dos_Alumnos_Misma_Inscripcion(self, no_Inscripcion, id_Alumno):
-        ''' Verifica que no haya dos alumnos en la misma inscriçión '''
+        """
+        Verifica si hay dos estudiantes diferentes inscritos en la misma inscripción.
+
+        Parámetros:
+            no_Inscripcion (int): El número de inscripción.
+            id_Alumno (int): El ID del estudiante.
+
+        Retorna:
+            bool: True si hay dos estudiantes diferentes inscritos en la misma inscripción, False de lo contrario.
+        """
         query = "SELECT Id_Alumno FROM Inscritos WHERE No_Inscripcion = ?"
         result = self.run_Query(query, (no_Inscripcion, ), 1)
 
@@ -460,6 +612,16 @@ class Inscripciones:
                 return False # El alumno es el mismo, y no hay problema con la inscripción
     
     def verificar_Registro_Alumno(self, no_Inscripcion, id_Alumno):
+        """
+        Verifica si un estudiante ya está inscrito en otra inscripción.
+
+        Parámetros:
+            no_Inscripcion (int): El número de inscripción actual del estudiante.
+            id_Alumno (int): El ID del estudiante.
+
+        Retorna:
+            bool: True si el estudiante ya está inscrito en otra inscripción, False de lo contrario.
+        """
         query = "SELECT No_Inscripcion FROM Inscritos WHERE Id_Alumno = ? AND No_Inscripcion != ?"
         result = self.run_Query(query, (id_Alumno, no_Inscripcion), 1)
         # Verifica si el query arroja un resultado "None" o no
@@ -484,7 +646,27 @@ class Inscripciones:
     
     ### Función para guardar un curso: Permite guardar una curso dentro de la inscripción 
     def guardar_Inscripcion(self, event):
-        ''' Guarda la inscripción de un curso '''
+        """
+        Guarda una inscripción para un curso.
+
+        Parámetros:
+            event (Event): El evento que activó la función.
+
+        Retorna:
+            None
+
+        Esta función verifica que todos los campos requeridos para la inscripción estén diligenciados por el usuario. Verifica los Comboboxes "cmbx_Id_Alumno", "cmbx_Id_Curso" y el Entry "fecha" porque al llenarlos se llenan automáticamente el resto del formulario.
+
+        La función luego verifica si el usuario ya ha registrado un curso en la inscripción actual. Si es así, no hace nada. Si no, verifica que el estudiante que se está registrando en la inscripción corresponda al estudiante asociado a la inscripción y no a un estudiante diferente.
+
+        Si el estudiante ya se ha registrado para el curso en la inscripción actual, muestra un mensaje de error. De lo contrario, inserta la nueva inscripción en la tabla "Inscritos".
+
+        Si el número de inscripción actualmente en el Combobox "cmbx_Num_Inscripcion" es igual al valor almacenado en la variable "autoincrementar_Contador", incrementa el valor de "autoincrementar_Contador" y lo inserta en el Combobox "cmbx_Num_Inscripcion".
+
+        Si esta es la primera vez que se guarda una inscripción o registro en la tabla "Inscritos", crea un registro en la columna "No_Inscripcion_Autoincremental" de la tabla "Autoincremental". De lo contrario, actualiza el valor en la columna "No_Inscripcion_Autoincremental" de la tabla "Autoincremental" al valor almacenado en la variable "autoincrementar_Contador".
+
+        Después de guardar la inscripción con éxito, muestra un mensaje de éxito y refresca los datos.
+        """
 
         # Inicialmente, se verifica que el usuario haya diligenciado todos los campos requeridos para formalizar la inscripción: 
         # Se verifican los Combobx "cmbx_Id_Alumno", "cmbx_Id_Curso" y el Entry "fecha" porque al llenar éstos, se llena el resto del formulario 
@@ -565,7 +747,17 @@ class Inscripciones:
     
     ### Función para mostrar datos en el Treeview: Permite mostrar los datos en el Treeview de la interfaz gráfica
     def mostrar_Datos(self, event = None):
-        '''  '''
+        """
+        Recupera datos de la base de datos basados en el número de inscripción seleccionado y los muestra en el Treeview.
+    
+        Parámetros:
+            event (opcional): El evento que desencadenó la función. Predeterminado a None.
+    
+        Retorna:
+            None
+    
+        Esta función recupera el número de inscripción del combobox `cmbx_Num_Inscripcion` y ejecuta una consulta SQL para recuperar los datos correspondientes de la tabla `Inscritos`. Si la consulta devuelve un resultado, la función borra el Treeview, lo llena con los datos recuperados y actualiza el combobox `cmbx_Id_Alumno` con el valor correspondiente. También actualiza los comboboxes `cmbx_Id_Curso` y `descripc_Curso` con los datos recuperados. Si la consulta no devuelve un resultado, se muestra un mensaje de advertencia.
+        """
         no_Inscripcion = self.cmbx_Num_Inscripcion.get()
 
         query = "SELECT Id_Alumno, Codigo_Curso, Horario FROM Inscritos WHERE No_Inscripcion = ?"
@@ -606,6 +798,24 @@ class Inscripciones:
 
     ### Función para crear ventana emergente que pregunta si se debe eliminar un curso o toda la inscripción
     def crear_Ventana_Eliminar(self, event):
+        """
+        Crea una nueva ventana para eliminar datos.
+
+        Parámetros:
+            event (Event): El evento que activó la función.
+
+        Retorna:
+            None
+
+        Esta función crea una nueva ventana para eliminar datos. Establece el título de la ventana a "Borrar datos" y configura su ancho y alto. Luego centra la ventana en la pantalla. La ventana no es redimensionable.
+
+        La función crea un marco de etiqueta con el texto "¿Qué desea realizar?" y establece su color de primer plano a "RoyalBlue". Luego empaqueta el marco de etiqueta con un relleno de 10 píxeles en la parte superior e izquierda.
+
+        La función crea dos botones de opción, "Borrar un curso" y "Borrar toda la inscripción", y los asocia con la variable `self.opcion`. Los botones de opción tienen diferentes valores (1 y 2) y tienen sus colores de primer plano y activo establecidos en "RoyalBlue" y "red2", respectivamente.
+
+        La función crea un botón con el texto "Borrar" y lo enlaza a la función `self.eliminar_Cursos`. El botón
+        """
+
         #Creacion de la ventana
         self.ventana_Borrar = tk.Toplevel()
         self.ventana_Borrar.title("Borrar datos")
@@ -647,6 +857,16 @@ class Inscripciones:
 
     ### Función para eliminar un curso o toda la inscripción completa
     def eliminar_Cursos(self, event):
+        """
+        Esta función se utiliza para eliminar un curso o eliminar por completo la inscripción.
+        Se activa mediante un evento de mouse.
+        
+        Parámetros:
+            event (Event): El evento de mouse que activa la función.
+        
+        Retorna:
+            None
+        """
         opcion = self.opcion.get()
         #verificar si esta seleccionado una opcion en la ventana borrar
         if opcion:
@@ -721,6 +941,17 @@ class Inscripciones:
 
     ### Función que se ejecuta cuando se oprime el botón editar: Subir los datos del Treeview al entry e inhabilita los botones guardar, buscar. Habilita el botón "confirmar" y siguen habilitando el botón cancelar
     def editar_Curso(self, event):
+        """
+        Edita el curso seleccionado en el TreeView.
+        
+        Parámetros:
+            event (Event): El evento que activó la función.
+        
+        Retorna:
+            None
+        
+        Esta función se llama cuando el usuario presiona el botón "Editar". Verifica si se ha seleccionado un curso en el árbol. Si se ha seleccionado un curso, configura los campos de combobox y entry para permitir la edición. Luego, recupera los valores del curso seleccionado y actualiza los campos de combobox y entry con esos valores. Los campos de combobox y entry se deshabilitan para evitar que se realicen más ediciones. Los botones de búsqueda, eliminación y guardado también se deshabilitan. El botón "Confirmar" se habilita y se enlaza a la función `confirmar_Editar`. El combobox se establece en de solo lectura. Si no se ha seleccionado ningún curso, se muestra un mensaje de error.
+        """
         if self.treeInscritos.selection():
             self.cmbx_Id_Curso.configure(state="normal")
             seleccion = self.treeInscritos.selection()[0]
@@ -753,6 +984,24 @@ class Inscripciones:
 
     ### Función que se ejecuta cuando se oprime el botón confirmar: Hacer el cambio del curso en la base de datos y en el Treeview
     def confirmar_Editar(self, event):
+        """
+        Actualiza la información del curso de un estudiante en la base de datos.
+        
+        Parámetros:
+            event (Event): El evento que desencadenó la función.
+        
+        Retorna:
+            None
+        
+        Levanta:
+            Exception: Si hay un error al ejecutar la consulta a la base de datos.
+        
+        Adicionalmente la función:
+            - Actualiza la información del curso de un estudiante en la base de datos.
+            - Actualiza el texto del botón y las enlaces.
+            - Habilita o deshabilita los botones en función de la validez de la entrada.
+            - Actualiza el Treeview con la nueva información del curso.
+        """
         id_Alumno = self.cmbx_Id_Alumno.get()
         nuevo_codigo_curso = self.cmbx_Id_Curso.get()
         nuevo_horario = self.horario.get()
@@ -784,7 +1033,15 @@ class Inscripciones:
 
     ### Función para cancelar: Limpia los campos de la interfaz gráfica
     def limpiar_Campos(self, event = None):
-        ''' Limpia todos los campos del frm1 '''
+        """
+        Limpia todos los campos en la interfaz gráfica y restablece el estado de varios botones y combobox.
+        
+        Parámetros:
+            event (opcional): El evento que desencadenó la función.
+        
+        Retorna:
+            None
+        """
 
         # 1. Limpieza de los campos 
 
