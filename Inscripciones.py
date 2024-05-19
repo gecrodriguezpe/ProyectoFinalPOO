@@ -19,9 +19,7 @@ ICON = r"/img/buho.ico"
 RELOJ = r"/img/reloj.png"
 
 # Directorio donde se encuentra la base de datos 
-# DB = r"/db/Inscripciones.db"
-DB = r"/db/Inscripciones_pruebas.db"
-
+DB = r"/db/Inscripciones.db"
 
 # Clase con la interfaz gráfica del programa
 class Inscripciones:
@@ -55,9 +53,9 @@ class Inscripciones:
         
         #Label No. Inscripción
         self.lblNumInscripcion = ttk.Label(self.frm_1, name="lblNumInscripcion")
-        self.lblNumInscripcion.configure(background="#f7f9fd",font="{Arial} 11 {bold}",
-                                        justify="left",state="normal",
-                                        takefocus=False,text='No.Inscripción')
+        self.lblNumInscripcion.configure(background="#f7f9fd", font="{Arial} 11 {bold}",
+                                        justify="left", state="normal",
+                                        takefocus=False, text='No.Inscripción')
         self.lblNumInscripcion.place(anchor="nw", x=680, y=20)
         
         #Combobox No. Inscripción
@@ -89,13 +87,16 @@ class Inscripciones:
         ## Desabilitar la tecla Delete dentro del Entry "fecha"
         self.fecha.bind("<Delete>", lambda _: "break")
 
+        ## Desabilitar la opción de click y seleccionar dentro del Entry "fecha"
+        self.fecha.bind("<B1-Motion>", lambda _: "break")
+
         ## Posicionar el cursor siempre al final del Entry "fecha"
         self.fecha.bindtags(((str(self.fecha)), "TEntry", "post-click", ".", "all")) #  Agregar la posibilidad de mover el cursor al final del Entry
         self.fecha.bind_class("post-click", "<Button-1>", self.mover_Cursor_Al_Final) # Mueve el cursor al final del Entry
 
         #Boton Reloj
         self.img_Boton=tk.PhotoImage(file=PATH + RELOJ)
-        self.btnReloj = ttk.Button(self.frm_1, name="btnreloj", image=self.img_Boton,compound="center")
+        self.btnReloj = ttk.Button(self.frm_1, name="btnreloj", image=self.img_Boton, compound="center")
         self.btnReloj.place(width=23, height=23, x=771, y=79)
         
         ## Ajustar la posición de la imagen dentro del botón utilizando la opción padding
@@ -888,7 +889,7 @@ class Inscripciones:
         """
         no_Inscripcion = self.cmbx_Num_Inscripcion.get()
 
-        query = "SELECT Id_Alumno, Codigo_Curso, Horario FROM Inscritos WHERE No_Inscripcion = ?"
+        query = "SELECT Id_Alumno, Codigo_Curso, Horario, Fecha_Inscripcion FROM Inscritos WHERE No_Inscripcion = ?"
         result = self.run_Query(query, (no_Inscripcion,), 2)
     
         if result:
@@ -919,6 +920,8 @@ class Inscripciones:
             self.descripc_Curso.delete(0, "end")
             self.cmbx_Id_Curso.configure(state="readonly")
             self.descripc_Curso.configure(state="disabled")
+            self.fecha.delete(0, "end")
+            self.fecha.insert(0, datos_DB[3])
         else:
             mssg.showerror("Advertencia", f"No se encuentra ninguna inscripción con el No. de inscripción: {self.cmbx_Num_Inscripcion.get()}")
 
@@ -1095,6 +1098,7 @@ class Inscripciones:
             self.descripc_Curso.configure(state="disabled")
             self.horario.delete(0, "end")
             self.horario.insert(0, self.horario_Actual)
+            self.cmbx_Id_Curso.bind("<<ComboboxSelected>>", self.escoger_Curso)
             #Bloquear los botones 
             self.descripc_Curso.configure(state="disabled")
             self.btnBuscar.configure(state="disabled")
@@ -1131,31 +1135,35 @@ class Inscripciones:
             - Actualiza el Treeview con la nueva información del curso.
         """
         id_Alumno = self.cmbx_Id_Alumno.get()
-        nuevo_codigo_curso = self.cmbx_Id_Curso.get()
+        nuevo_Codigo_Curso = self.cmbx_Id_Curso.get()
         nuevo_horario = self.horario.get()
         numero_De_inscripcion = self.cmbx_Num_Inscripcion.get()
         desc_Curso_Nuevo = self.descripc_Curso.get()
         fecha_Nueva = self.fecha.get()
         query1 = "UPDATE Inscritos SET Codigo_Curso = ?, Horario = ?, Fecha_Inscripcion = ? WHERE No_Inscripcion = ? AND Codigo_Curso = ? AND Horario = ?"
-        parametros1 = (nuevo_codigo_curso, nuevo_horario, fecha_Nueva,numero_De_inscripcion, self.curso_Actual, self.horario_Actual)
-        if self.verificar_Integridad_Cursos(id_Alumno, desc_Curso_Nuevo, nuevo_codigo_curso,  numero_De_inscripcion):
-            mssg.showerror("Error", f"El alumno identificado con código {id_Alumno} ya se encuentra inscrito en el curso {desc_Curso_Nuevo} para la inscripción No. {numero_De_inscripcion}")
+        parametros1 = (nuevo_Codigo_Curso, nuevo_horario, fecha_Nueva,numero_De_inscripcion, self.curso_Actual, self.horario_Actual)
+        
+        if not id_Alumno or not nuevo_Codigo_Curso or not fecha_Nueva:
+            mssg.showerror("Error", "Por favor, complete todos los campos")
         else:
-            try:
-                self.run_Query(query1, parametros1)
-                mssg.showinfo("Estado", f"La modificacion del curso {self.desc_Curso_Actual} por el curso {desc_Curso_Nuevo} ha sido realizada con exito")
-            except Exception as e:
-                mssg.showerror("Error", e)
-            self.btnEditar.configure(text="Editar", style="TButton")
-            self.btnEditar.unbind("<Button-1>")
-            self.btnEditar.bind("<Button-1>", self.editar_Curso)
-            self.btnBuscar.configure(state="normal")
-            self.btnBuscar.bind("<Button-1>", self.mostrar_Datos)
-            self.btnGuardar.configure(state="normal")
-            self.btnGuardar.bind("<Button-1>", self.guardar_Inscripcion)
-            self.btnEliminar.configure(state="normal")
-            self.btnEliminar.bind("<Button-1>", self.crear_Ventana_Eliminar)
-            self.mostrar_Datos()
+            if self.verificar_Integridad_Cursos(id_Alumno, desc_Curso_Nuevo, nuevo_Codigo_Curso,  numero_De_inscripcion):
+                mssg.showerror("Error", f"El alumno identificado con código {id_Alumno} ya se encuentra inscrito en el curso {desc_Curso_Nuevo} para la inscripción No. {numero_De_inscripcion}")
+            else:
+                try:
+                    self.run_Query(query1, parametros1)
+                    mssg.showinfo("Estado", f"La modificacion del curso {self.desc_Curso_Actual} por el curso {desc_Curso_Nuevo} ha sido realizada con exito")
+                except Exception as e:
+                    mssg.showerror("Error", e)
+                self.btnEditar.configure(text="Editar", style="TButton")
+                self.btnEditar.unbind("<Button-1>")
+                self.btnEditar.bind("<Button-1>", self.editar_Curso)
+                self.btnBuscar.configure(state="normal")
+                self.btnBuscar.bind("<Button-1>", self.mostrar_Datos)
+                self.btnGuardar.configure(state="normal")
+                self.btnGuardar.bind("<Button-1>", self.guardar_Inscripcion)
+                self.btnEliminar.configure(state="normal")
+                self.btnEliminar.bind("<Button-1>", self.crear_Ventana_Eliminar)
+                self.mostrar_Datos()
 
     ''' Funcionalidad para el botón "Cancelar" '''
 
