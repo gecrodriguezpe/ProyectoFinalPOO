@@ -1137,17 +1137,17 @@ class Inscripciones:
         id_Alumno = self.cmbx_Id_Alumno.get()
         nuevo_Codigo_Curso = self.cmbx_Id_Curso.get()
         nuevo_horario = self.horario.get()
-        numero_De_inscripcion = self.cmbx_Num_Inscripcion.get()
+        no_Inscripcion = self.cmbx_Num_Inscripcion.get()
         desc_Curso_Nuevo = self.descripc_Curso.get()
         fecha_Nueva = self.fecha.get()
         query1 = "UPDATE Inscritos SET Codigo_Curso = ?, Horario = ?, Fecha_Inscripcion = ? WHERE No_Inscripcion = ? AND Codigo_Curso = ? AND Horario = ?"
-        parametros1 = (nuevo_Codigo_Curso, nuevo_horario, fecha_Nueva,numero_De_inscripcion, self.curso_Actual, self.horario_Actual)
+        parametros1 = (nuevo_Codigo_Curso, nuevo_horario, fecha_Nueva, no_Inscripcion, self.curso_Actual, self.horario_Actual)
         
         if not id_Alumno or not nuevo_Codigo_Curso or not fecha_Nueva:
             mssg.showerror("Error", "Por favor, complete todos los campos")
         else:
-            if self.verificar_Integridad_Cursos(id_Alumno, desc_Curso_Nuevo, nuevo_Codigo_Curso,  numero_De_inscripcion):
-                mssg.showerror("Error", f"El alumno identificado con código {id_Alumno} ya se encuentra inscrito en el curso {desc_Curso_Nuevo} para la inscripción No. {numero_De_inscripcion}")
+            if self.verificar_Integridad_Cursos(id_Alumno, desc_Curso_Nuevo, nuevo_Codigo_Curso,  no_Inscripcion):
+                mssg.showerror("Error", f"El alumno identificado con código {id_Alumno} ya se encuentra inscrito en el curso {desc_Curso_Nuevo} para la inscripción No. {no_Inscripcion}")
             else:
                 try:
                     self.run_Query(query1, parametros1)
