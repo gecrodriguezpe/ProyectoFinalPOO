@@ -45,9 +45,9 @@ class Inscripciones:
         self.win.iconbitmap(PATH + ICON) # Icono de la ventana 
         self.win.title("Inscripciones de Materias y Cursos") # Título de la ventana
 
-        ''' Widgets: Elementos de la Ventana principal del programa '''
+        ''' Widgets: Elementos de la ventana principal del programa '''
 
-        # Creación del frame del programa
+        # Creación del frame asociada a la ventana principal: "frm_1"
         self.frm_1 = tk.Frame(self.win, name="frm_1")
         self.frm_1.configure(background="#f7f9fd", height=600, width=800)
         
@@ -95,15 +95,15 @@ class Inscripciones:
         self.fecha.bind_class("post-click", "<Button-1>", self.mover_Cursor_Al_Final) # Mueve el cursor al final del Entry
 
         #Boton Reloj
-        self.img_Boton=tk.PhotoImage(file=PATH + RELOJ)
+        self.img_Boton=tk.PhotoImage(file=PATH + RELOJ) # Imagen del reloj que va a estar sobre el botón
         self.btnReloj = ttk.Button(self.frm_1, name="btnreloj", image=self.img_Boton, compound="center")
         self.btnReloj.place(width=23, height=23, x=771, y=79)
         
-        ## Ajustar la posición de la imagen dentro del botón utilizando la opción padding
+        ## Configuraciones adicionales para el botón "btnReloj"
         self.btnReloj.image = self.img_Boton.subsample(2, 2)  # Reducir el tamaño de la imagen para que quepa en el botón
-        self.btnReloj.config(padding=(-10, -10, -10, -10))
-        self.btnReloj.bind("<Button-1>", self.obtener_Fecha)
-        self.msj_btnReloj = Hovertip(self.btnReloj, text="Presione para obtener la fecha actual", hover_delay=50)
+        self.btnReloj.config(padding=(-10, -10, -10, -10)) # Ajustar la posición de la imagen dentro del botón utilizando la opción padding
+        self.btnReloj.bind("<Button-1>", self.obtener_Fecha) # Asociar el evento de presión sobre el botón "btnReloj" con la función "obtener_Fecha"
+        self.msj_btnReloj = Hovertip(self.btnReloj, text="Presione para obtener la fecha actual", hover_delay=50) # Muestra un mensaje cuando el cursor este sobre el botón reloj
 
         #Label Alumno
         self.lblIdAlumno = ttk.Label(self.frm_1, name="lblidalumno")
@@ -139,11 +139,11 @@ class Inscripciones:
         self.lblIdCurso.configure(background="#f7f9fd",state="normal",text='Id Curso:')
         self.lblIdCurso.place(anchor="nw", x=20, y=185)
 
-        #Entry Curso
+        #Combobox Curso
         self.cmbx_Id_Curso = ttk.Combobox(self.frm_1, name="id_curso", state="readonly")
         self.cmbx_Id_Curso.place(anchor="nw", width=166, x=100, y=185)
-        self.obtener_Cursos() # Permite obtener la lista de códigos de los cursos de la tabla Cursos e introducirla al combobox "cmbx_Id_Alumno"
-        self.cmbx_Id_Curso.bind("<<ComboboxSelected>>", self.escoger_Curso)    # Asignar al evento de selección del código del curso en el combobox "cmbx_Id_Alumno" la función "escoger_Curso"
+        self.obtener_Cursos() # Permite obtener la lista de códigos de los cursos de la tabla Cursos e introducirla al combobox "cmbx_Id_Curso"
+        self.cmbx_Id_Curso.bind("<<ComboboxSelected>>", self.escoger_Curso)    # Asignar al evento de selección del código del curso en el combobox "cmbx_Id_Curso" la función "escoger_Curso"
 
         #Label Descripción del Curso
         self.lblDscCurso = ttk.Label(self.frm_1, name="lbldsccurso")
@@ -160,9 +160,6 @@ class Inscripciones:
         self.lblHorario.configure(background="#f7f9fd",state="normal",text='Hora:')
         self.lblHorario.place(anchor="nw", x=635, y=185)
 
-        ## Cambiar a un combobox que contenga la lista predeterminada de horarios permitidos. La lista se crea manualmene en el programa cuando se instancie la clase
-        ## Lo que se puede hacer es colocar de manera automática el número de horas o el número de créditos directo en el Treeview
-
         #Entry del Horario
         self.horario = ttk.Entry(self.frm_1, name="entry3")
         self.horario.configure(justify="left", width=166)
@@ -172,43 +169,43 @@ class Inscripciones:
 
         # Estilo para los botones default
         self.botones = ttk.Style()
-        self.botones.configure("TButton", foreground = "RoyalBlue")
-        self.botones.map("TButton", foreground=[("active", "red2")])
+        self.botones.configure("TButton", foreground = "RoyalBlue") # Todos los botones van a tener un "foreground" de color azul
+        self.botones.map("TButton", foreground=[("active", "red2")]) # Cuándo el mouse pase sobre los botones, el "foreground" cambia a rojo
 
         #Estilo para los botones alterno
-        estilo = ttk.Style()
-        estilo.map("Boton.TButton", foreground=[("active", "black")])
-        estilo.configure("Boton.TButton", foreground="red")
-        
+        estilo = ttk.Style() # Aplica cuándo los alternos, en específico para el botón "confirmar"
+        estilo.map("Boton.TButton", foreground=[("active", "black")]) # Cuándo el mouse pase sobre los botones, el "foreground" cambia a negro
+        estilo.configure("Boton.TButton", foreground="red") # "foreground" de color rojo
+
         #Boton Buscar
         self.btnBuscar = ttk.Button(self.frm_1, name="btnbuscar")
         self.btnBuscar.configure(text='Buscar')
         self.btnBuscar.place(anchor="nw", x=155, y=260)
-        self.btnBuscar.bind("<Button-1>", self.mostrar_Datos)
+        self.btnBuscar.bind("<Button-1>", self.mostrar_Datos) # Asignar al evento de dar click izquierdo sobre el botón "btnBuscar" la función "mostrar_Datos"
         
         #Botón Guardar
         self.btnGuardar = ttk.Button(self.frm_1, name="btnguardar")
         self.btnGuardar.configure(text='Guardar')
         self.btnGuardar.place(anchor="nw", x=255, y=260)
-        self.btnGuardar.bind("<Button-1>", self.guardar_Inscripcion)
+        self.btnGuardar.bind("<Button-1>", self.guardar_Inscripcion) # Asignar al evento de dar click izquierdo sobre el botón "btnGuardar" la función "guardar_Inscripcion"
         
         #Botón Editar
         self.btnEditar = ttk.Button(self.frm_1, name="btneditar")
         self.btnEditar.configure(text='Editar')
         self.btnEditar.place(anchor="nw", x=355, y=260)
-        self.btnEditar.bind("<Button-1>", self.editar_Curso)
+        self.btnEditar.bind("<Button-1>", self.editar_Curso) # Asignar al evento de dar click izquierdo sobre el botón "btnEditar" la función "editar_Curso"
 
         #Botón Eliminar
         self.btnEliminar = ttk.Button(self.frm_1, name="btneliminar")
         self.btnEliminar.configure(text='Eliminar')
         self.btnEliminar.place(anchor="nw", x=455, y=260)
-        self.btnEliminar.bind("<Button-1>", self.crear_Ventana_Eliminar)
+        self.btnEliminar.bind("<Button-1>", self.crear_Ventana_Eliminar) # Asignar al evento de dar click izquierdo sobre el botón "btnEliminar" la función "crear_Ventana_Eliminar"
         
         #Botón Cancelar
         self.btnCancelar = ttk.Button(self.frm_1, name="btncancelar")
         self.btnCancelar.configure(text='Cancelar')
         self.btnCancelar.place(anchor="nw", x=555, y=260)
-        self.btnCancelar.bind("<Button-1>", self.limpiar_Campos)
+        self.btnCancelar.bind("<Button-1>", self.limpiar_Campos) # Asignar al evento de dar click izquierdo sobre el botón "btnCancelar" la función "limpiar_Campos"
 
         #Separador
         separator1 = ttk.Separator(self.frm_1)
@@ -544,25 +541,36 @@ class Inscripciones:
         else:
             return resultado[0]
 
+   # Función para obtener los IDs de los alumnos de la tabla "Alumnos" e insertarlos dentro del combobox "cmbx_Id_Alumno"
     def obtener_Alumnos(self):
         """
         Recupera los IDs de los estudiantes distintos de la tabla "Alumnos" y los agrega al combobox "cmbx_Id_Alumno".
 
-        Esta función ejecuta una consulta SQL para seleccionar los IDs de los estudiantes distintos de la tabla "Alumnos". Los resultados se almacenan en la variable "results". Si la variable "results" no está vacía, la función itera sobre cada resultado y extrae el primer elemento (el ID del estudiante) en la lista "ids_alumnos". Finalmente, la lista "ids_alumnos" se asigna como valores del combobox "cmbx_Id_Alumno".
+        Esta función ejecuta una consulta SQL para seleccionar los IDs de los estudiantes distintos de la tabla "Alumnos". 
+        Los resultados se almacenan en la variable "results". Si la variable "results" no está vacía, la función itera sobre cada resultado y extrae el primer elemento (el ID del estudiante) en la lista "ids_alumnos".
+        Finalmente, la lista "ids_alumnos" se asigna como valores del combobox "cmbx_Id_Alumno".
 
         Parámetros:
             self (objeto): La instancia de la clase a la que pertenece el método.
 
         Retorna:
             None
-        """                  
-        query = "SELECT DISTINCT Id_Alumno FROM Alumnos ORDER BY Id_Alumno"
-        results = self.run_Query(query, (), 2)
-        if results:
-            ids_alumnos = [result[0] for result in results]
-            self.cmbx_Id_Alumno['values'] = ids_alumnos
+        """      
 
-    
+        # Seleccionar los IDs de los alumnos de la columna Id_Alumno de la tabla "Alumnos" y ordenandolos de forma ascendente
+        query = "SELECT DISTINCT Id_Alumno FROM Alumnos ORDER BY Id_Alumno"
+        resultados = self.run_Query(query, (), 2)
+        
+        # Si la variable resultados no está vacía, la función itera sobre cada resultado y extrae el primer elemento (el ID del estudiante) en la lista ids_Alumnos. Dicha lista se usa para llenar combobox "cmbx_Id_Alumno"
+        if resultados:
+
+            # Generar la lista "ids_Alumnos" la cual contiene los IDs de los alumnos que resultarón de la cosulta 
+            ids_Alumnos = [resultado[0] for resultado in resultados]
+
+            # Llenar el combobox "cmbx_Id_Alumno" con los IDs de los alumnos que se encuentran en la lista "ids_Alumnos"
+            self.cmbx_Id_Alumno['values'] = ids_Alumnos
+
+    # Función para ingresar los nombres y apellidos correspondientes al ID del estudiante que se encuentre dentro del combobox "cmbx_Id_Alumno" en los Entrys "nombres" y "apellidos"
     def escoger_Alumno(self, event = None):
         """
         Selecciona un estudiante del combobox "cmbx_Id_Alumno" y rellena las entradas "nombres" y "apellidos".
@@ -574,21 +582,36 @@ class Inscripciones:
         Retorna:
             None
         """        
+
+        # Recuperar el ID del estudiante del combobox "cmbx_Id_Alumno"
         id_Alumno = self.cmbx_Id_Alumno.get()
+
+        # Seleccionar los nombres y apellidos del estudiante de las columnas Nombres y Apellidos de la tabla "Alumnos"
         query = "SELECT Nombres, Apellidos FROM Alumnos WHERE Id_Alumno = ?"
-        result = self.run_Query(query, (id_Alumno,), 1)
-        if result:
-            nombre = result[0]
-            apellidos = result[1]
+        resultado = self.run_Query(query, (id_Alumno,), 1)
+        
+        # Si la variable resultado no está vacía, la función rellena las entradas "nombres" y "apellidos" con los valores recuperados de la consulta
+        if resultado:
+            
+            # Llenar las entradas "nombres" y "apellidos" con los valores recuperados de la consulta
+            nombre = resultado[0]
+            apellidos = resultado[1]
+
+            # Habilita las Entrys "nombres" y "apellidos"
             self.nombres.configure(state="normal")
             self.apellidos.configure(state="normal")
+
+            # Borra todo lo que se encuentra dentro de la Entry "nombres" e inserta el valor de los nombres del estudiante recuperado de la consulta
             self.nombres.delete(0, "end")
             self.nombres.insert(0, nombre)
+
+            # Borra todo lo que se encuentra dentro de la Entry "apellidos" e inserta el valor de los apellidos del estudiante recuperado de la consulta
             self.apellidos.delete(0, "end")
             self.apellidos.insert(0, apellidos)
+
+            # Deshabilita las Entrys "nombres" y "apellidos"
             self.apellidos.configure(state="disabled")
             self.nombres.configure(state="disabled")
-            #self.cmbx_Num_Inscripcion.configure(state="disabled")
 
     # Función para inicializar el combobox "cmbx_Num_Inscripcion" con los valores que se encuentren en la variable "No_Inscrpcion" de la tabla "Inscritos"
     def obtener_Inscripciones(self):    
@@ -642,11 +665,14 @@ class Inscripciones:
         # Establece el valor predeterminado del combobox "cmbx_Num_Inscripcion"
         self.cmbx_Num_Inscripcion.set(id_Predeterminado)
     
+    # Función para obtener los códigos de los cursos de la tabla "Cursos" e insertarlos dentro del combobox "cmbx_Id_Curso"
     def obtener_Cursos(self):
         """
         Recupera una lista de códigos de curso distintos de la tabla "Cursos" y los rellena en el combobox "cmbx_Id_Curso".
 
-        Esta función ejecuta una consulta SQL para recuperar los códigos de curso distintos de la tabla "Cursos". La consulta ordena los resultados por el código de curso. Si la consulta devuelve algún resultado, la función crea una lista del primer campo de cada fila de resultado. Esta lista se asigna al atributo "values" del combobox "cmbx_Id_Curso".
+        Esta función ejecuta una consulta SQL para recuperar los códigos de curso distintos de la tabla "Cursos". 
+        La consulta ordena los resultados por el código de curso. Si la consulta devuelve algún resultado, la función crea una lista del primer campo de cada fila de resultado. 
+        Esta lista se asigna al atributo "values" del combobox "cmbx_Id_Curso".
 
         Parámetros:
             self (objeto): La instancia de la clase a la que pertenece este método.
@@ -654,13 +680,21 @@ class Inscripciones:
         Retorna:
             None
         """
+
+        # Seleccionar los códigos de los cursos de la columna Codigo_Curso de la tabla "Cursos" y ordenandolos de forma ascendente
         query = "SELECT DISTINCT Codigo_Curso FROM Cursos ORDER BY Codigo_Curso"
-        results = self.run_Query(query, (), 2)
-        if results:
-            codigos_cursos = [result[0] for result in results]
-            self.cmbx_Id_Curso['values'] = codigos_cursos
+        resultados = self.run_Query(query, (), 2)
+
+        # Si la variable resultados no está vacía, la función itera sobre cada resultado y extrae el primer elemento (el código del curso) en la lista codigos_Cursos. Dicha lista se usa para llenar combobox "cmbx_Id_Curso"
+        if resultados:
+
+            # Genera la lista "codigos_Cursos" la cual contiene los códigos de los curso que resultarón de la cosulta
+            codigos_Cursos = [resultado[0] for resultado in resultados]
+
+            # Llena el combobox "cmbx_Id_Curso" con los códigos de los curso que se encuentran en la lista "codigos_Cursos"
+            self.cmbx_Id_Curso['values'] = codigos_Cursos
             
-    # Corregir la funcionalidad de horario!!! Se puede modificar la funcionalidad, para que actue diferente 
+    # Función para ingresar la descripción del curso y el horario correspondientes al código del curso que se encuentre dentro del combobox "cmbx_Id_Curso" en los Entrys "descripc_Curso" y "horario"
     def escoger_Curso(self, event= None):
         """
         Selecciona un curso desde el combobox "cmbx_Id_Curso" y completa las entradas "descripc_Curso" y "horario" con la descripción y número de horas correspondientes.
@@ -672,19 +706,34 @@ class Inscripciones:
         Retorna:
             None
         """
-        id_Curso = self.cmbx_Id_Curso.get()  # Corregido de self.num_Curso a self.cmbx_Id_Curso
+        
+        # Recuperar el código del curso del combobox "cmbx_Id_Curso"
+        id_Curso = self.cmbx_Id_Curso.get()  
+        
+        # Seleccionar la descripción del curso y el número de horas del curso de las columnas Descrip_Curso y Num_Horas de la tabla "Cursos"
         query = "SELECT Descrip_Curso, Num_Horas FROM Cursos WHERE Codigo_Curso = ?"
-        result = self.run_Query(query, (id_Curso,), 1)
-        if result:
-            descrip = result[0]
-            num_Horas = result[1]
+        resultado = self.run_Query(query, (id_Curso,), 1)
+        
+        # Si la variable resultado no está vacía, la función rellena las entradas "descripc_Curso" y "horario" con los valores recuperados de la consulta
+        if resultado:
+
+            # Llenar las entradas "descripc_Curso" y "horario" con los valores recuperados de la consulta
+            descrip = resultado[0]
+            num_Horas = resultado[1]
+
+            # Habilitar las Entrys "descripc_Curso" y "horario"            
             self.descripc_Curso.configure(state="normal")
             self.horario.configure(state="normal")
+
+            # Borra todo lo que se encuentra dentro de la Entry "descripc_Curso" e inserta el valor de la descripción del curso recuperado de la consulta
             self.descripc_Curso.delete(0, "end")
             self.descripc_Curso.insert(0, descrip)
+
+            # Borra todo lo que se encuentra dentro de la Entry "horario" e inserta el valor del horario del curso recuperado de la consulta
             self.horario.delete(0, "end")
             self.horario.insert(0, num_Horas)
-            #self.horario.configure(state="disabled")
+            
+            # Deshabilita el Entry "descripc_Curso"
             self.descripc_Curso.configure(state="disabled")
 
     ''' Funcionalidad para el botón "Guardar" '''
@@ -703,16 +752,32 @@ class Inscripciones:
         Retorna:
             bool: True si el estudiante ya se ha inscrito en el curso o si el nombre del curso coincide con alguno de los cursos inscritos, False de lo contrario.
         """
+        
+        # Selecciona los codigos de los cursos de la tabla "Inscritos" del estudiante que se encuentre en la inscripción "no_Inscripcion"
         query = "SELECT Codigo_Curso FROM Inscritos WHERE Id_Alumno = ? AND No_Inscripcion = ?"
-        result = self.run_Query(query, (id_Alumno, no_Inscripcion), 2) #trae los codigos del curso en los que esta incrito el alumno
-        id_Cursos_Del_Alumno = [resultado[0] for resultado in result] #convierte la tupla en una lista de solo IDS de curso
+        resultados = self.run_Query(query, (id_Alumno, no_Inscripcion), 2) # Trae los codigos del curso en los que esta incrito el alumno
+        
+        # Convierte la tupla de resultados en una lista de solo contiene los IDs de curso
+        id_Cursos_Del_Alumno = [resultado[0] for resultado in resultados] 
+
+        # Crea una lista vacía que almacena los nombres de los curss que se repitan 
         nombres_cursos = []
-        for codigo_Curso in id_Cursos_Del_Alumno: #recorre la lista de IDs de curso y convierte en nombres de curso
+        
+        # Recorre la lista de IDs de curso
+        for codigo_Curso in id_Cursos_Del_Alumno: 
+            
+            # Selecciona la descripción del curso de la tabla "Cursos" correspondiente al del ID del curso ("codigo_Curso")
             query2 = "SELECT Descrip_Curso FROM Cursos WHERE Codigo_Curso = ?"
-            result2 = self.run_Query(query2, (codigo_Curso,), 1)
-            if result2 and result2[0] == nombre_Curso:
-                nombres_cursos.append(result2[0]) #va añadiedno a la lista de nombres de cursos los nombres de los cursos que estan en la lista de IDs de cursos
-        return id_Curso in id_Cursos_Del_Alumno or nombre_Curso in nombres_cursos # verifica si el ID del curso es igual al ID del curso del alumno o si el nombre del curso es igual al nombre del curso del alumno
+            resultado2 = self.run_Query(query2, (codigo_Curso,), 1)
+            
+            # Si el resultado del query no es vacío y adicionalmente la descripción del curso corresponde a "nombre_Curso"
+            if resultado2 and resultado2[0] == nombre_Curso:
+
+                # Agrega dicha descripción del curso en la lista "nombres_cursos"
+                nombres_cursos.append(resultado2[0]) 
+
+        # Verifica si el ID del curso que se acaba de ingresar es igual a algún ID de los cursos actualmente inscritos por el alumno en dicha inscripción o si el nombre del curso es igual a algún nombre de los cursos inscritos por el alumno
+        return id_Curso in id_Cursos_Del_Alumno or nombre_Curso in nombres_cursos 
 
         
     # Función auxiliar2 botón Guardar: No permite que dos alumnos diferentes inscriban en la misma inscripción 
@@ -728,13 +793,13 @@ class Inscripciones:
             bool: True si hay dos estudiantes diferentes inscritos en la misma inscripción, False de lo contrario.
         """
         query = "SELECT Id_Alumno FROM Inscritos WHERE No_Inscripcion = ?"
-        result = self.run_Query(query, (no_Inscripcion, ), 1)
+        resultado = self.run_Query(query, (no_Inscripcion, ), 1)
 
         # Verifica si el query arroja un resultado "None" o no, que implica que si el número de inscripción se encuentra en la base de datos "Inscritos" o no
-        if result == None:
+        if resultado == None:
             return False # El número de inscripción no se encuentra aún registrado en la columna "No_Inscripcion" de la base de datos "Inscritos"
         else:
-            if id_Alumno != result[0]:
+            if id_Alumno != resultado[0]:
                 return True  # Los dos alumnos son diferentes, lo cuál no es permitido
             else:
                 return False # El alumno es el mismo, y no hay problema con la inscripción
@@ -752,14 +817,14 @@ class Inscripciones:
             bool: True si el estudiante ya está inscrito en otra inscripción, False de lo contrario.
         """
         query = "SELECT No_Inscripcion FROM Inscritos WHERE Id_Alumno = ? AND No_Inscripcion != ?"
-        result = self.run_Query(query, (id_Alumno, no_Inscripcion), 1)
+        resultado = self.run_Query(query, (id_Alumno, no_Inscripcion), 1)
         # Verifica si el query arroja un resultado "None" o no
-        if result is not None:
-            confirmacion = mssg.askquestion("Confirmacion", f"¿Desea inscribir el alumno {id_Alumno} en su registro perteneciente a la inscripción {result[0]}?")
+        if resultado is not None:
+            confirmacion = mssg.askquestion("Confirmacion", f"¿Desea inscribir el alumno {id_Alumno} en su registro perteneciente a la inscripción {resultado[0]}?")
             if confirmacion == "yes":
                 self.limpiar_Campos()
                 for i, curso in enumerate(self.cmbx_Num_Inscripcion["values"]):
-                    if result[0] == int(curso):
+                    if resultado[0] == int(curso):
                         self.cmbx_Num_Inscripcion.current(i)
                         self.cmbx_Num_Inscripcion.event_generate("<<ComboboxSelected>>")
                         #self.cmbx_Num_Inscripcion.set(self.cmbx_Num_Inscripcion["values"][i]) esta puede ser otra opcion pra subir las cosas al combobox
@@ -784,15 +849,19 @@ class Inscripciones:
         Retorna:
             None
 
-        Esta función verifica que todos los campos requeridos para la inscripción estén diligenciados por el usuario. Verifica los Comboboxes "cmbx_Id_Alumno", "cmbx_Id_Curso" y el Entry "fecha" porque al llenarlos se llenan automáticamente el resto del formulario.
+        Esta función verifica que todos los campos requeridos para la inscripción estén diligenciados por el usuario. 
+        Verifica los Comboboxes "cmbx_Id_Alumno", "cmbx_Id_Curso" y el Entry "fecha" porque al llenarlos se llenan automáticamente el resto del formulario.
 
-        La función luego verifica si el usuario ya ha registrado un curso en la inscripción actual. Si es así, no hace nada. Si no, verifica que el estudiante que se está registrando en la inscripción corresponda al estudiante asociado a la inscripción y no a un estudiante diferente.
+        La función luego verifica si el usuario ya ha registrado un curso en la inscripción actual. Si es así, no hace nada. 
+        Si no, verifica que el estudiante que se está registrando en la inscripción corresponda al estudiante asociado a la inscripción y no a un estudiante diferente.
 
         Si el estudiante ya se ha registrado para el curso en la inscripción actual, muestra un mensaje de error. De lo contrario, inserta la nueva inscripción en la tabla "Inscritos".
 
-        Si el número de inscripción actualmente en el Combobox "cmbx_Num_Inscripcion" es igual al valor almacenado en la variable "autoincrementar_Contador", incrementa el valor de "autoincrementar_Contador" y lo inserta en el Combobox "cmbx_Num_Inscripcion".
+        Si el número de inscripción actualmente en el Combobox "cmbx_Num_Inscripcion" es igual al valor almacenado en la variable "autoincrementar_Contador", incrementa el valor de "autoincrementar_Contador" 
+        y lo inserta en el Combobox "cmbx_Num_Inscripcion".
 
-        Si esta es la primera vez que se guarda una inscripción o registro en la tabla "Inscritos", crea un registro en la columna "No_Inscripcion_Autoincremental" de la tabla "Autoincremental". De lo contrario, actualiza el valor en la columna "No_Inscripcion_Autoincremental" de la tabla "Autoincremental" al valor almacenado en la variable "autoincrementar_Contador".
+        Si esta es la primera vez que se guarda una inscripción o registro en la tabla "Inscritos", crea un registro en la columna "No_Inscripcion_Autoincremental" de la tabla "Autoincremental". 
+        De lo contrario, actualiza el valor en la columna "No_Inscripcion_Autoincremental" de la tabla "Autoincremental" al valor almacenado en la variable "autoincrementar_Contador".
 
         Después de guardar la inscripción con éxito, muestra un mensaje de éxito y refresca los datos.
         """
@@ -827,8 +896,8 @@ class Inscripciones:
                     else:
                         # Query que inserta nueva inscripción en la tabla Inscritos
                         query = "INSERT INTO Inscritos (No_Inscripcion, Id_Alumno, Codigo_Curso, Fecha_Inscripcion, Horario) VALUES (?, ?, ?, ?, ?)"
-                        parameters = (no_Inscripcion, id_Alumno, id_Curso, fecha, horario_Curso)
-                        self.run_Query(query, parameters)
+                        parametros = (no_Inscripcion, id_Alumno, id_Curso, fecha, horario_Curso)
+                        self.run_Query(query, parametros)
 
                         # Condicional para verificar si se debe incrementar el contador del autoincrementar
                         if (int(no_Inscripcion) == int(self.autoincrementar_Contador)):
@@ -846,12 +915,12 @@ class Inscripciones:
                             # De lo contrario, se actualiza el valor dentro de la columna "No_Inscripcion_Autoincremental" de la tabla "Autoincremental" al valor que se encuentre almancenado en la variable self.autoincrementar_Contador
                             if (self.autoincrementar_Contador == 2):
                                 query2 = "INSERT INTO Autoincremental (No_Inscripcion_Autoincremental) VALUES (?)"
-                                parameters2 = (self.autoincrementar_Contador, )
-                                self.run_Query(query2, parameters2)
+                                parametros2 = (self.autoincrementar_Contador, )
+                                self.run_Query(query2, parametros2)
                             else:    
                                 query2 = "UPDATE Autoincremental SET No_Inscripcion_Autoincremental = ?"
-                                parameters2 = (self.autoincrementar_Contador, )
-                                self.run_Query(query2, parameters2)
+                                parametros2 = (self.autoincrementar_Contador, )
+                                self.run_Query(query2, parametros2)
                     
                         # Mensaje que confirma que la inscripción se ha realizado con éxito
                         mssg.showinfo("Exito", "Inscripcion realizada con exito")
@@ -859,16 +928,18 @@ class Inscripciones:
                         
                         # Configura los campos luego de realizar una inscripción con éxito 
                         
-                        ## 
+                        ## Coloca dentro del combobox "cmbx_Num_Inscripcion" el valor almacenado en la variable no_Inscripcion
                         self.cmbx_Num_Inscripcion.set(no_Inscripcion)
 
-                        ## 
+                        ## Limpia el combobox "cmbx_Id_Alumno"
                         self.cmbx_Id_Curso.configure(state="normal")
                         self.cmbx_Id_Curso.delete(0, "end")
 
+                        ## Limpia el Entry "descripc_Curso"
                         self.descripc_Curso.configure(state="normal")
                         self.descripc_Curso.delete(0, "end")
 
+                        ## Limpia el Entry "horario"
                         self.horario.configure(state="normal")
                         self.horario.delete(0, "end")
                     
@@ -877,7 +948,7 @@ class Inscripciones:
     # Función para mostrar datos en el Treeview: Permite mostrar los datos en el Treeview de la interfaz gráfica
     def mostrar_Datos(self, event = None):
         """
-        Recupera datos de la base de datos basados en el número de inscripción seleccionado y los muestra en el Treeview.
+        Trae los registros de la tabla Inscritos basándose en el número de inscripción seleccionado en el combobox "cmbx_Num_Inscripcion" y los muestra en el Treeview.
     
         Parámetros:
             event (opcional): El evento que desencadenó la función. Predeterminado a None.
@@ -885,41 +956,62 @@ class Inscripciones:
         Retorna:
             None
     
-        Esta función recupera el número de inscripción del combobox `cmbx_Num_Inscripcion` y ejecuta una consulta SQL para recuperar los datos correspondientes de la tabla `Inscritos`. Si la consulta devuelve un resultado, la función borra el Treeview, lo llena con los datos recuperados y actualiza el combobox `cmbx_Id_Alumno` con el valor correspondiente. También actualiza los comboboxes `cmbx_Id_Curso` y `descripc_Curso` con los datos recuperados. Si la consulta no devuelve un resultado, se muestra un mensaje de advertencia.
+        Esta función recupera el número de inscripción del combobox `cmbx_Num_Inscripcion` y ejecuta una consulta SQL para recuperar los datos correspondientes de la tabla `Inscritos`. 
+        Si la consulta devuelve un resultado, la función borra el Treeview, lo llena con los datos recuperados y actualiza el combobox `cmbx_Id_Alumno` con el valor correspondiente. 
+        También actualiza los comboboxes `cmbx_Id_Curso` y `descripc_Curso` con los datos recuperados. Si la consulta no devuelve un resultado, se muestra un mensaje de advertencia.
         """
+        
+        # Recuperar el número de inscripción del combobox "cmbx_Num_Inscripcion"
         no_Inscripcion = self.cmbx_Num_Inscripcion.get()
 
+        # Seleccionar el ID_Alumno, Codigo_Curso, Horario, Fecha_Inscripcion de la tabla "Inscritos" donde No_Inscripcion = no_Inscripcion
         query = "SELECT Id_Alumno, Codigo_Curso, Horario, Fecha_Inscripcion FROM Inscritos WHERE No_Inscripcion = ?"
-        result = self.run_Query(query, (no_Inscripcion,), 2)
+        resultados = self.run_Query(query, (no_Inscripcion,), 2)
     
-        if result:
-            # Para limpiar el Treeview
+        # Si la consulta no es vacía entonces llena el TreeView con los resultados de la consulta, de lo contrario, muestra un mensaje de error
+        if resultados:
+            
+            # Limpia el Treeview
             self.treeInscritos.delete(*self.treeInscritos.get_children())
 
-            # Llenar el Treeview de cada dato que trajo el result
-            for datos_DB in result:          
-                codigo_Curso = (datos_DB[1],)
+            # Llenar el Treeview con cada registro que se trajo de la consulta
+            for datos_DB in resultados:          
+                codigo_Curso = (datos_DB[1],) # Código del curso asociado a dicho registro 
+
+                # Seleccionar el Descrip_Curso de la tabla "Cursos" donde Codigo_Curso = Codigo_Curso del registro
                 query2 = "SELECT Descrip_Curso FROM Cursos WHERE Codigo_Curso = ?"
-                result2 = self.run_Query(query2, codigo_Curso, 1)
-                self.treeInscritos.insert("", 0, text= datos_DB[0], values = (datos_DB[1], result2[0], datos_DB[2]))   
+                resultado2 = self.run_Query(query2, codigo_Curso, 1)
+
+                # Llenar el Treeview con cada registro que se trajo de la consulta
+                self.treeInscritos.insert("", 0, text=datos_DB[0], values = (datos_DB[1], resultado2[0], datos_DB[2]))   
             
-            # Llnear el Combobox "cmbx_Id_Alumno"
+            # Llenar el Combobox "cmbx_Id_Alumno" con el ID_Alumno del registro que se obtuvo de la consulta 
             self.cmbx_Id_Alumno.configure(state= "normal")
             self.cmbx_Id_Alumno.delete(0, "end")
-            self.cmbx_Id_Alumno.insert(0, datos_DB[0])
+            self.cmbx_Id_Alumno.insert(0, datos_DB[0]) # Es correcto, porque el cada inscripción uno y solo un estudiante 
             self.cmbx_Id_Alumno.configure(state= "disabled")
 
-            # Llenar los nombres y apellidos de los alumnos
+            # Llenar los Entrys "nombres" y "apellidos" con los nombres y apellidos del alumno correspondiente a la inscripción
             self.escoger_Alumno()
 
-            # 
+            # Limpia el combobox "cmbx_Id_Curso"
             self.cmbx_Id_Curso.configure(state="normal")
             self.cmbx_Id_Curso.delete(0, "end")
+
+            # Habilita los Entrys "descripc_Curso" y "horario"
             self.descripc_Curso.configure(state="normal")
             self.horario.configure(state="normal")
+
+            # Limpia el Entry "descripc_Curso"
             self.descripc_Curso.delete(0, "end")
+
+            # Habilita el combobox "cmbx_Id_Curso" en modo de solo lectura ("readonly")
             self.cmbx_Id_Curso.configure(state="readonly")
+
+            # Deshabilita el Entry "descripc_Curso"
             self.descripc_Curso.configure(state="disabled")
+
+            # Llenar el Entry "fecha" con la fecha de la inscripción 
             self.fecha.delete(0, "end")
             self.fecha.insert(0, datos_DB[3])
         else:
@@ -938,11 +1030,14 @@ class Inscripciones:
         Retorna:
             None
 
-        Esta función crea una nueva ventana para eliminar datos. Establece el título de la ventana a "Borrar datos" y configura su ancho y alto. Luego centra la ventana en la pantalla. La ventana no es redimensionable.
+        Esta función crea una nueva ventana para eliminar datos. Establece el título de la ventana a "Borrar datos" y configura su ancho y alto. 
+        Luego centra la ventana en la pantalla. La ventana no es redimensionable.
 
-        La función crea un marco de etiqueta con el texto "¿Qué desea realizar?" y establece su color de primer plano a "RoyalBlue". Luego empaqueta el marco de etiqueta con un relleno de 10 píxeles en la parte superior e izquierda.
+        La función crea un marco de etiqueta con el texto "¿Qué desea realizar?" y establece su color de primer plano a "RoyalBlue". 
+        Luego empaqueta el marco de etiqueta con un relleno de 10 píxeles en la parte superior e izquierda.
 
-        La función crea dos botones de opción, "Borrar un curso" y "Borrar toda la inscripción", y los asocia con la variable `self.opcion`. Los botones de opción tienen diferentes valores (1 y 2) y tienen sus colores de primer plano y activo establecidos en "RoyalBlue" y "red2", respectivamente.
+        La función crea dos botones de opción, "Borrar un curso" y "Borrar toda la inscripción", y los asocia con la variable `self.opcion`. 
+        Los botones de opción tienen diferentes valores (1 y 2) y tienen sus colores de primer plano y activo establecidos en "RoyalBlue" y "red2", respectivamente.
 
         La función crea un botón con el texto "Borrar" y lo enlaza a la función `self.eliminar_Cursos`. El botón
         """
@@ -1021,7 +1116,7 @@ class Inscripciones:
                         parametros2 = (num_Incripcion, codigo_Curso)
                         borrar = self.run_Query(query2, parametros2)    
                         query3 = "SELECT COUNT(No_Inscripcion) FROM Inscritos WHERE No_Inscripcion = ? AND Codigo_Curso = ?"
-                        confirmacion_Eliminar = self.run_Query(query3,parametros2, 1)[0]
+                        confirmacion_Eliminar = self.run_Query(query3, parametros2, 1)[0]
                         #confirmar si se elimino el curso
                         if confirmacion_Eliminar == 0:
                             mensaje = f"El curso ({codigo_Curso}) {nombre_Curso} ha sido borrado con exito."
@@ -1081,35 +1176,76 @@ class Inscripciones:
         Retorna:
             None
         
-        Esta función se llama cuando el usuario presiona el botón "Editar". Verifica si se ha seleccionado un curso en el árbol. Si se ha seleccionado un curso, configura los campos de combobox y entry para permitir la edición. Luego, recupera los valores del curso seleccionado y actualiza los campos de combobox y entry con esos valores. Los campos de combobox y entry se deshabilitan para evitar que se realicen más ediciones. Los botones de búsqueda, eliminación y guardado también se deshabilitan. El botón "Confirmar" se habilita y se enlaza a la función `confirmar_Editar`. El combobox se establece en de solo lectura. Si no se ha seleccionado ningún curso, se muestra un mensaje de error.
+        Esta función se llama cuando el usuario presiona el botón "Editar". 
+        Verifica si se ha seleccionado un curso en el TreeView. Si se ha seleccionado un curso, configura los combobox y entrys para permitir la edición. 
+        Luego, recupera los valores del curso seleccionado y actualiza los campos de combobox y entry con esos valores. 
+        Los campos de combobox y entry se deshabilitan para evitar que se realicen más ediciones. Los botones de búsqueda, eliminación y guardado también se deshabilitan. 
+        El botón "Confirmar" se habilita y se enlaza a la función `confirmar_Editar`. El combobox se establece en modo solo lectura. Si no se ha seleccionado ningún curso, se muestra un mensaje de error.
         """
+
+        # Verificar si se ha seleccionado un curso en el TreeView, de lo contrario arroja un mensaje de error. 
         if self.treeInscritos.selection():
+
+            # Recupera los valores del registro que actualmente se encuentra seleccionado en el TreeView y configura los Entrys y combobox correspondientes para la edición 
+
+            ## Configura el combobox "cmbx_Id_Curso" en estado editable
             self.cmbx_Id_Curso.configure(state="normal")
+
+            ## Seleccion es el índice que denota el registro que actualmente se encuentra seleccionado en el TreeView
             seleccion = self.treeInscritos.selection()[0]
+
+            ## Recuperar los valores que se encuentran en el registro seleccionado en el TreeView
             seleccion_Values = self.treeInscritos.item(seleccion, "values")
+
+            ## Configura el entry "descripc_Curso" en estado editable
             self.descripc_Curso.configure(state="normal")
+            
+            ## Ingresa la información recuperada del registro seleccionado en el TreeView en los Entrys correspondientes
             self.curso_Actual = seleccion_Values[0]
             self.desc_Curso_Actual = seleccion_Values[1]
             self.horario_Actual = seleccion_Values[2]
+
+            ## Limpia el combobox "cmbx_Id_Curso" y lo rellena con el valor que se encuentra en la variable "curso_Actual"
             self.cmbx_Id_Curso.delete(0, "end")
             self.cmbx_Id_Curso.insert(0, self.curso_Actual)
+
+            ## Limpia el Entry "descripc_Curso" y lo rellena con el valor que se encuentra en la variable "desc_Curso_Actual". Luego desahabilita el Entry.
             self.descripc_Curso.delete(0, "end")
             self.descripc_Curso.insert(0, self.desc_Curso_Actual)
             self.descripc_Curso.configure(state="disabled")
+            
+            ## Limpia el Entry "horario" y lo rellena con el valor que se encuentra en la variable "horario_Actual"
             self.horario.delete(0, "end")
             self.horario.insert(0, self.horario_Actual)
+
+            # Con el ID del curso que se encuentra en el combobox "cmbx_Id_Curso" se llena los Entrys "descripc_Curso" y "horario"
             self.cmbx_Id_Curso.bind("<<ComboboxSelected>>", self.escoger_Curso)
-            #Bloquear los botones 
+
+            # Bloquear los botones, Entrys y comboboxes
+            
+            ## Se desahabilita el Entry "descripc_Curso"
             self.descripc_Curso.configure(state="disabled")
+
+            ## Se deshabilita el botón "Buscar" 
             self.btnBuscar.configure(state="disabled")
             self.btnBuscar.unbind("<Button-1>")
+
+            ## Se deshabilita el botón "Eliminar" 
             self.btnEliminar.configure(state="disabled")
             self.btnEliminar.unbind("<Button-1>")
+
+            ## Se deshabilita el botón "Guardar" 
             self.btnGuardar.configure(state="disabled")
             self.btnGuardar.unbind("<Button-1>")
+
+            ## Se deshabilita el botón "Editar"
             self.btnEditar.configure(text="Confirmar", style="Boton.TButton")
             self.btnEditar.unbind("<Button-1>")
+
+            ## Se modifica el botón "Editar" y se habilita ahora con el nombre de botón "Confirmar"
             self.btnEditar.bind("<Button-1>", self.confirmar_Editar)
+
+            ## Se habilita el combobox "cmbx_Id_Curso" en el estado de solo lectura ("readonly")
             self.cmbx_Id_Curso.configure(state="readonly")
         else:
             mssg.showerror("Error", "Seleccione un curso")
@@ -1117,7 +1253,7 @@ class Inscripciones:
     # Función que se ejecuta cuando se oprime el botón confirmar: Hacer el cambio del curso en la base de datos y en el Treeview
     def confirmar_Editar(self, event):
         """
-        Actualiza la información del curso de un estudiante en la base de datos.
+        Actualiza la información del curso de un estudiante en la tabla Inscritos.
         
         Parámetros:
             event (Event): El evento que desencadenó la función.
@@ -1129,40 +1265,63 @@ class Inscripciones:
             Exception: Si hay un error al ejecutar la consulta a la base de datos.
         
         Adicionalmente la función:
-            - Actualiza la información del curso de un estudiante en la base de datos.
-            - Actualiza el texto del botón y las enlaces.
+            - Actualiza la información del curso de un estudiante en la tabla Inscritos.
+            - Actualiza el texto del botón "Editar" y las enlaces.
             - Habilita o deshabilita los botones en función de la validez de la entrada.
             - Actualiza el Treeview con la nueva información del curso.
         """
+        
+        # Obtener los valores que se encuentran en los comboboxes "cmbx_Id_Alumno" y "cmbx_Id_Curso" y Entry "horario"
         id_Alumno = self.cmbx_Id_Alumno.get()
         nuevo_Codigo_Curso = self.cmbx_Id_Curso.get()
         nuevo_horario = self.horario.get()
+
+        # Obtener los valores que se encuentran en los combobox "cmbx_Num_Inscripcion" y Entrys "descripc_Curso" y "fecha"
         no_Inscripcion = self.cmbx_Num_Inscripcion.get()
         desc_Curso_Nuevo = self.descripc_Curso.get()
         fecha_Nueva = self.fecha.get()
+
+        # Actualiza la información del curso que se edito y se actualizó en la tabla Inscritos
         query1 = "UPDATE Inscritos SET Codigo_Curso = ?, Horario = ?, Fecha_Inscripcion = ? WHERE No_Inscripcion = ? AND Codigo_Curso = ? AND Horario = ?"
         parametros1 = (nuevo_Codigo_Curso, nuevo_horario, fecha_Nueva, no_Inscripcion, self.curso_Actual, self.horario_Actual)
         
+        # Verifica que todos los campos necesarias para guardar la edición del curso estén llenos 
         if not id_Alumno or not nuevo_Codigo_Curso or not fecha_Nueva:
             mssg.showerror("Error", "Por favor, complete todos los campos")
         else:
+            # Verifica que no esté editando el mismo curso original
             if self.verificar_Integridad_Cursos(id_Alumno, desc_Curso_Nuevo, nuevo_Codigo_Curso,  no_Inscripcion):
                 mssg.showerror("Error", f"El alumno identificado con código {id_Alumno} ya se encuentra inscrito en el curso {desc_Curso_Nuevo} para la inscripción No. {no_Inscripcion}")
             else:
+                # Mensaje informativo de si la edición del curso fue exitosa o no 
                 try:
                     self.run_Query(query1, parametros1)
                     mssg.showinfo("Estado", f"La modificacion del curso {self.desc_Curso_Actual} por el curso {desc_Curso_Nuevo} ha sido realizada con exito")
                 except Exception as e:
                     mssg.showerror("Error", e)
+                
+                # Cambiar de nuevo el nombre del botón "Editar" de "Confirmar" de nuevo a "Editar"
                 self.btnEditar.configure(text="Editar", style="TButton")
+                
+                # Volver a habilitar los botones de la interfaz gráfica
+
+                ## Habilitar el botón "Editar"
                 self.btnEditar.unbind("<Button-1>")
                 self.btnEditar.bind("<Button-1>", self.editar_Curso)
+
+                ## Habilitar el botón "Buscar"
                 self.btnBuscar.configure(state="normal")
                 self.btnBuscar.bind("<Button-1>", self.mostrar_Datos)
+
+                ## Habilitar el botón "Guardar"
                 self.btnGuardar.configure(state="normal")
                 self.btnGuardar.bind("<Button-1>", self.guardar_Inscripcion)
+
+                ## Habilitar el botón "Eliminar"
                 self.btnEliminar.configure(state="normal")
                 self.btnEliminar.bind("<Button-1>", self.crear_Ventana_Eliminar)
+
+                ## Mostrar todos los cursos inscritos en la inscripción en el TreeView
                 self.mostrar_Datos()
 
     ''' Funcionalidad para el botón "Cancelar" '''
@@ -1246,6 +1405,7 @@ class Inscripciones:
         
         ## Añadir al combobox "cmbx_Num_Inscripcion" el valor de la siguiente inscripción disponible
         self.cmbx_Num_Inscripcion.set(self.cmbx_Num_Inscripcion["values"][0])
+
         ## Disabilitar el combobox cmbx_Num_Inscripcion para que no pueda ser editado
         self.cmbx_Num_Inscripcion.configure(state="readonly")     
            
