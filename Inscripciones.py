@@ -7,7 +7,7 @@ import sqlite3
 from pathlib import Path
 from datetime import datetime
 from idlelib.tooltip import Hovertip
-
+import re
 
 # Directorio del archivo Inscripciones.py
 PATH = str((Path(__file__).resolve()).parent)
@@ -893,69 +893,73 @@ class Inscripciones:
         # Horario de inscripción 
         horario_Curso = self.horario.get()   
         
-        # Se verifica que no haya campos importantes vacíos para realizar la inscripción
-        if not id_Alumno or not id_Curso or not fecha:
-            mssg.showerror("Error", "Por favor, complete todos los campos")
-        else:
-            if self.verificar_Registro_Alumno(no_Inscripcion, id_Alumno):
-                pass
+        # Valida que la fecha ingresada se encuentre en el formato correcto dd/mm/aaaa
+        if re.fullmatch(r"^\d{2}/\d{2}/\d{4}", fecha):       
+            # Se verifica que no haya campos importantes vacíos para realizar la inscripción
+            if not id_Alumno or not id_Curso or not fecha:
+                mssg.showerror("Error", "Por favor, complete todos los campos")
             else:
-            # Verificar que el alumno que está inscribiendo en la inscriçión correspondiente a "no_Inscripcion" es el que corresponde a la inscripción y no un alumnto diferente
-                if self.verificar_No_Dos_Alumnos_Misma_Inscripcion(no_Inscripcion, id_Alumno):  
-                    mssg.showerror("Error", f"El código del alumno {id_Alumno} no corresponde al código del alumno correspondiente a la inscripción {no_Inscripcion}")
+                if self.verificar_Registro_Alumno(no_Inscripcion, id_Alumno):
+                    pass
                 else:
-                    # Verificar si el alumno ya inscribió el curso en está inscripción (i.e. no puede haber cursos repetidos para un alumno en la misma inscripción)
-                    if self.verificar_Integridad_Cursos(id_Alumno, desc_Curso, id_Curso, no_Inscripcion):
-                        mssg.showerror("Error", f"El alumno identificado con código {id_Alumno} ya se encuentra inscrito en el curso con nombre {desc_Curso} para la inscripción No. {no_Inscripcion}")
+                # Verificar que el alumno que está inscribiendo en la inscriçión correspondiente a "no_Inscripcion" es el que corresponde a la inscripción y no un alumnto diferente
+                    if self.verificar_No_Dos_Alumnos_Misma_Inscripcion(no_Inscripcion, id_Alumno):  
+                        mssg.showerror("Error", f"El código del alumno {id_Alumno} no corresponde al código del alumno correspondiente a la inscripción {no_Inscripcion}")
                     else:
-                        # Query que inserta nueva inscripción en la tabla Inscritos
-                        query = "INSERT INTO Inscritos (No_Inscripcion, Id_Alumno, Codigo_Curso, Fecha_Inscripcion, Horario) VALUES (?, ?, ?, ?, ?)"
-                        parametros = (no_Inscripcion, id_Alumno, id_Curso, fecha, horario_Curso)
-                        self.run_Query(query, parametros)
+                        # Verificar si el alumno ya inscribió el curso en está inscripción (i.e. no puede haber cursos repetidos para un alumno en la misma inscripción)
+                        if self.verificar_Integridad_Cursos(id_Alumno, desc_Curso, id_Curso, no_Inscripcion):
+                            mssg.showerror("Error", f"El alumno identificado con código {id_Alumno} ya se encuentra inscrito en el curso con nombre {desc_Curso} para la inscripción No. {no_Inscripcion}")
+                        else:
+                            # Query que inserta nueva inscripción en la tabla Inscritos
+                            query = "INSERT INTO Inscritos (No_Inscripcion, Id_Alumno, Codigo_Curso, Fecha_Inscripcion, Horario) VALUES (?, ?, ?, ?, ?)"
+                            parametros = (no_Inscripcion, id_Alumno, id_Curso, fecha, horario_Curso)
+                            self.run_Query(query, parametros)
 
-                        # Condicional para verificar si se debe incrementar el contador del autoincrementar
-                        if (int(no_Inscripcion) == int(self.autoincrementar_Contador)):
-                            # Se incrementa el valor del autoincrementar del No. de inscripción
-                            self.autoincrementar_Contador += 1
+                            # Condicional para verificar si se debe incrementar el contador del autoincrementar
+                            if (int(no_Inscripcion) == int(self.autoincrementar_Contador)):
+                                # Se incrementa el valor del autoincrementar del No. de inscripción
+                                self.autoincrementar_Contador += 1
 
-                            # Se ingresa dicho valor del nuevo autoincrementar dentro del combobox "cmbx_Num_Inscripcion"
-                            lista_No_Inscripcion = list(self.cmbx_Num_Inscripcion["values"])
-                            lista_No_Inscripcion.insert(0, self.autoincrementar_Contador)
-                            self.cmbx_Num_Inscripcion["values"] = lista_No_Inscripcion
+                                # Se ingresa dicho valor del nuevo autoincrementar dentro del combobox "cmbx_Num_Inscripcion"
+                                lista_No_Inscripcion = list(self.cmbx_Num_Inscripcion["values"])
+                                lista_No_Inscripcion.insert(0, self.autoincrementar_Contador)
+                                self.cmbx_Num_Inscripcion["values"] = lista_No_Inscripcion
 
-                            # Se actualiza el valor almacenado en la columna "No_Inscripcion_Autoincremental" de la tabla "Autoincremental"
+                                # Se actualiza el valor almacenado en la columna "No_Inscripcion_Autoincremental" de la tabla "Autoincremental"
 
-                            # Si es la primera vez que se guarda una inscripción o registro en la tabla "Inscritos", entonces se crea el registro dentro de la columna "No_Inscripcion_Autoincremental" de la tabla "Autoincremental"
-                            # De lo contrario, se actualiza el valor dentro de la columna "No_Inscripcion_Autoincremental" de la tabla "Autoincremental" al valor que se encuentre almancenado en la variable self.autoincrementar_Contador
-                            if (self.autoincrementar_Contador == 2):
-                                query2 = "INSERT INTO Autoincremental (No_Inscripcion_Autoincremental) VALUES (?)"
-                                parametros2 = (self.autoincrementar_Contador, )
-                                self.run_Query(query2, parametros2)
-                            else:    
-                                query2 = "UPDATE Autoincremental SET No_Inscripcion_Autoincremental = ?"
-                                parametros2 = (self.autoincrementar_Contador, )
-                                self.run_Query(query2, parametros2)
-                    
-                        # Mensaje que confirma que la inscripción se ha realizado con éxito
-                        mssg.showinfo("Exito", "Inscripcion realizada con exito")
-                        self.mostrar_Datos()
+                                # Si es la primera vez que se guarda una inscripción o registro en la tabla "Inscritos", entonces se crea el registro dentro de la columna "No_Inscripcion_Autoincremental" de la tabla "Autoincremental"
+                                # De lo contrario, se actualiza el valor dentro de la columna "No_Inscripcion_Autoincremental" de la tabla "Autoincremental" al valor que se encuentre almancenado en la variable self.autoincrementar_Contador
+                                if (self.autoincrementar_Contador == 2):
+                                    query2 = "INSERT INTO Autoincremental (No_Inscripcion_Autoincremental) VALUES (?)"
+                                    parametros2 = (self.autoincrementar_Contador, )
+                                    self.run_Query(query2, parametros2)
+                                else:    
+                                    query2 = "UPDATE Autoincremental SET No_Inscripcion_Autoincremental = ?"
+                                    parametros2 = (self.autoincrementar_Contador, )
+                                    self.run_Query(query2, parametros2)
                         
-                        # Configura los campos luego de realizar una inscripción con éxito 
-                        
-                        ## Coloca dentro del combobox "cmbx_Num_Inscripcion" el valor almacenado en la variable no_Inscripcion
-                        self.cmbx_Num_Inscripcion.set(no_Inscripcion)
+                            # Mensaje que confirma que la inscripción se ha realizado con éxito
+                            mssg.showinfo("Exito", "Inscripcion realizada con exito")
+                            self.mostrar_Datos()
+                            
+                            # Configura los campos luego de realizar una inscripción con éxito 
+                            
+                            ## Coloca dentro del combobox "cmbx_Num_Inscripcion" el valor almacenado en la variable no_Inscripcion
+                            self.cmbx_Num_Inscripcion.set(no_Inscripcion)
 
-                        ## Limpia el combobox "cmbx_Id_Alumno"
-                        self.cmbx_Id_Curso.configure(state="normal")
-                        self.cmbx_Id_Curso.delete(0, "end")
+                            ## Limpia el combobox "cmbx_Id_Alumno"
+                            self.cmbx_Id_Curso.configure(state="normal")
+                            self.cmbx_Id_Curso.delete(0, "end")
 
-                        ## Limpia el Entry "descripc_Curso"
-                        self.descripc_Curso.configure(state="normal")
-                        self.descripc_Curso.delete(0, "end")
+                            ## Limpia el Entry "descripc_Curso"
+                            self.descripc_Curso.configure(state="normal")
+                            self.descripc_Curso.delete(0, "end")
 
-                        ## Limpia el Entry "horario"
-                        self.horario.configure(state="normal")
-                        self.horario.delete(0, "end")
+                            ## Limpia el Entry "horario"
+                            self.horario.configure(state="normal")
+                            self.horario.delete(0, "end")
+        else: 
+            mssg.showerror("Error", "Digite una fecha en el formato correcto dd/mm/aaaa")
                     
     ''' Funcionalidad para el botón "Buscar" '''
     
