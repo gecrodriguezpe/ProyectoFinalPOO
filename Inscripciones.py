@@ -314,7 +314,7 @@ class Inscripciones:
         """
         # Mueve el cursor al final del Entry        
         self.fecha.icursor(len(self.fecha.get()))
-
+    
     # Función auxiliar 2 de validación de fecha: Permite obtener la fecha actual o inmediata que se encuentra en el sistema del computador tan pronto se hizo la solicitud de ésta. 
     def obtener_Fecha(self,event = None):
         """
@@ -333,8 +333,7 @@ class Inscripciones:
 
         # Utiliza la librería datetime para obtener la fecha actual en formato " %d %m %Y "
         fecha_Actual = datetime.now().strftime("%d%m%Y")
-        
-        # Itera a través de la cadena de texto "fecha_Actual"
+            # Itera a través de la cadena de texto "fecha_Actual"
         for caracter in fecha_Actual:
             
             # Inserta cada carácter, uno por uno, de la cadena de texto "fecha_Actual"
@@ -375,7 +374,7 @@ class Inscripciones:
 
         # Obtener la cadena de texto que se encuentra en el Entry "fecha"
         fecha = self.fecha.get()
-
+        # _dd()mm()
         # Verifica la longitud de la fecha y inserta un carácter "/" en la posición adecuada
         if (len(fecha) in [2, 5]):
             self.fecha.insert(fecha.index(" ") + 1 if " " in fecha else len(fecha), "/") # En las posiciones 2 y 5, inserta un "/"
@@ -478,6 +477,7 @@ class Inscripciones:
         # Verifica la longitud de la cadena de texto y procede a borrar el carácter si la longitud es mayor a 0
         if len(texto) == 0:
             pass
+        #dd/mm/aaaa
         else: 
             if texto[-1].isdigit():
                 self.fecha.delete(len(self.fecha.get())) # En caso de que el último carácter sea un dígito, borra solo el dígito            
@@ -940,6 +940,7 @@ class Inscripciones:
                         
                             # Mensaje que confirma que la inscripción se ha realizado con éxito
                             mssg.showinfo("Exito", "Inscripcion realizada con exito")
+
                             self.mostrar_Datos()
                             
                             # Configura los campos luego de realizar una inscripción con éxito 
@@ -950,14 +951,18 @@ class Inscripciones:
                             ## Limpia el combobox "cmbx_Id_Alumno"
                             self.cmbx_Id_Curso.configure(state="normal")
                             self.cmbx_Id_Curso.delete(0, "end")
+                            self.cmbx_Id_Curso.configure(state="readonly")
 
                             ## Limpia el Entry "descripc_Curso"
                             self.descripc_Curso.configure(state="normal")
                             self.descripc_Curso.delete(0, "end")
+                            self.descripc_Curso.configure(state="disabled")
 
                             ## Limpia el Entry "horario"
                             self.horario.configure(state="normal")
                             self.horario.delete(0, "end")
+                            self.horario.configure(state="disabled")
+
         else: 
             mssg.showerror("Error", "Digite una fecha en el formato correcto dd/mm/aaaa")
                     
@@ -1232,7 +1237,7 @@ class Inscripciones:
                         mssg.showinfo("Exito", mensaje)
                     else:
                         # Mensaje de error en caso de que el número de inscripción no tenga cursos inscritos
-                        mensaje = f"El numero de inscripcion {num_Incripcion} no tiene cursos inscriptos."
+                        mensaje = f"El numero de inscripcion {num_Incripcion} no tiene cursos inscritos."
                         
                         # Para destruir la ventana emergente
                         self.ventana_Borrar.destroy()
@@ -1365,44 +1370,49 @@ class Inscripciones:
         parametros1 = (nuevo_Codigo_Curso, nuevo_horario, fecha_Nueva, no_Inscripcion, self.curso_Actual, self.horario_Actual)
         
         # Verifica que todos los campos necesarias para guardar la edición del curso estén llenos 
-        if not id_Alumno or not nuevo_Codigo_Curso or not fecha_Nueva:
-            mssg.showerror("Error", "Por favor, complete todos los campos")
-        else:
-            # Verifica que no esté editando el mismo curso original
-            if self.verificar_Integridad_Cursos(id_Alumno, desc_Curso_Nuevo, nuevo_Codigo_Curso,  no_Inscripcion):
-                mssg.showerror("Error", f"El alumno identificado con código {id_Alumno} ya se encuentra inscrito en el curso {desc_Curso_Nuevo} para la inscripción No. {no_Inscripcion}")
+        #exp 
+        if re.fullmatch(r"^\d{2}/\d{2}/\d{4}", fecha_Nueva):  
+            if not id_Alumno or not nuevo_Codigo_Curso or not fecha_Nueva:
+                mssg.showerror("Error", "Por favor, complete todos los campos")
             else:
-                # Mensaje informativo de si la edición del curso fue exitosa o no 
-                try:
-                    self.run_Query(query1, parametros1)
-                    mssg.showinfo("Estado", f"La modificacion del curso {self.desc_Curso_Actual} por el curso {desc_Curso_Nuevo} ha sido realizada con exito")
-                except Exception as e:
-                    mssg.showerror("Error", e)
-                
-                # Cambiar de nuevo el nombre del botón "Editar" de "Confirmar" de nuevo a "Editar"
-                self.btnEditar.configure(text="Editar", style="TButton")
-                
-                # Volver a habilitar los botones de la interfaz gráfica
+                # Verifica que no esté editando el mismo curso original
+                if self.verificar_Integridad_Cursos(id_Alumno, desc_Curso_Nuevo, nuevo_Codigo_Curso,  no_Inscripcion):
+                    mssg.showerror("Error", f"El alumno identificado con código {id_Alumno} ya se encuentra inscrito en el curso {desc_Curso_Nuevo} para la inscripción No. {no_Inscripcion}")
+                else:
+                    # Mensaje informativo de si la edición del curso fue exitosa o no 
+                    try:
+                        self.run_Query(query1, parametros1)
+                        mssg.showinfo("Estado", f"La modificacion del curso {self.desc_Curso_Actual} por el curso {desc_Curso_Nuevo} ha sido realizada con exito")
+                    except Exception as e:
+                        mssg.showerror("Error", e)
+                    
+                    # Cambiar de nuevo el nombre del botón "Editar" de "Confirmar" de nuevo a "Editar"
+                    self.btnEditar.configure(text="Editar", style="TButton")
+                    
+                    # Volver a habilitar los botones de la interfaz gráfica
 
-                ## Habilitar el botón "Editar"
-                self.btnEditar.unbind("<Button-1>")
-                self.btnEditar.bind("<Button-1>", self.editar_Curso)
+                    ## Habilitar el botón "Editar"
+                    self.btnEditar.unbind("<Button-1>")
+                    self.btnEditar.bind("<Button-1>", self.editar_Curso)
 
-                ## Habilitar el botón "Buscar"
-                self.btnBuscar.configure(state="normal")
-                self.btnBuscar.bind("<Button-1>", self.mostrar_Datos)
+                    ## Habilitar el botón "Buscar"
+                    self.btnBuscar.configure(state="normal")
+                    self.btnBuscar.bind("<Button-1>", self.mostrar_Datos)
 
-                ## Habilitar el botón "Guardar"
-                self.btnGuardar.configure(state="normal")
-                self.btnGuardar.bind("<Button-1>", self.guardar_Inscripcion)
+                    ## Habilitar el botón "Guardar"
+                    self.btnGuardar.configure(state="normal")
+                    self.btnGuardar.bind("<Button-1>", self.guardar_Inscripcion)
 
-                ## Habilitar el botón "Eliminar"
-                self.btnEliminar.configure(state="normal")
-                self.btnEliminar.bind("<Button-1>", self.crear_Ventana_Eliminar)
+                    ## Habilitar el botón "Eliminar"
+                    self.btnEliminar.configure(state="normal")
+                    self.btnEliminar.bind("<Button-1>", self.crear_Ventana_Eliminar)
 
-                ## Mostrar todos los cursos inscritos en la inscripción en el TreeView
-                self.mostrar_Datos()
+                    ## Mostrar todos los cursos inscritos en la inscripción en el TreeView
+                    self.mostrar_Datos()
+        else: 
+            mssg.showerror("Error", "Digite una fecha en el formato correcto dd/mm/aaaa")
 
+            
     ''' Funcionalidad para el botón "Cancelar" '''
 
     # Función para cancelar: Limpia los campos de la interfaz gráfica
